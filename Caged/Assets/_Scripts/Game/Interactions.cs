@@ -237,7 +237,7 @@ public class Interactions : MonoBehaviourPun
         PhotonView view = PhotonView.Find(viewid);
         LightInfo LI = view.transform.GetComponent<LightInfo>();
         LI.isOn = i;
-        LI.light.gameObject.SetActive(i);
+        LI.lightSwitch.gameObject.SetActive(i);
     }
 
 }

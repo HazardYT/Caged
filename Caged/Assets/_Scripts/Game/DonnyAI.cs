@@ -46,7 +46,6 @@ public class DonnyAI : MonoBehaviourPun
     public Vector3 jailMinBounds;
     public Vector3 jailMaxBounds;
     //other variables
-    private float forgetPositionTimer;
     private bool isGrace;
     private float timeSinceLastHeard = 0f;
     private float hearingCooldown = 0.5f;
@@ -475,7 +474,6 @@ public class DonnyAI : MonoBehaviourPun
         {
             Debug.Log("PathNotComplete");
             moveToLastKnown = false;
-            forgetPositionTimer = 0;
             SearchWalkPoint();
         }
 
@@ -486,7 +484,6 @@ public class DonnyAI : MonoBehaviourPun
             Debug.Log("Completed--MoveToLastKnown");
             agent.speed = agentWalkSpeed;
             moveToLastKnown = false;
-            forgetPositionTimer = 0;
             SearchWalkPoint();
         }
         else if (agent.velocity == Vector3.zero)
