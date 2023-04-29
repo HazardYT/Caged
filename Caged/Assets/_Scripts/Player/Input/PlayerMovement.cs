@@ -68,7 +68,6 @@ public class PlayerMovement : MonoBehaviourPun
         Look();
         Move();
         ManageToggles();
-
     }
     public void ManageToggles()
     {
