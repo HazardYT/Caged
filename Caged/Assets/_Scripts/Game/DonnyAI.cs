@@ -56,30 +56,10 @@ public class DonnyAI : MonoBehaviourPun
     private void Start()
     {
         DifficultySet();
-        InitializeDoorStates();
         if (!photonView.IsMine || PhotonNetwork.IsMasterClient)
         {
             gameObject.GetComponent<AudioListener>().enabled = false;
             return;
-        }
-    }
-    private void InitializeDoorStates()
-    {
-        GameObject[] doors = GameObject.FindGameObjectsWithTag("Door");
-        GameObject[] staticDoors = GameObject.FindGameObjectsWithTag("StaticDoor");
-
-        foreach (GameObject door in doors)
-        {
-            Debug.Log("PEE Found Door");
-            DoorInfo doorInfo = door.GetComponent<DoorInfo>();
-            doorStates.Add(door.GetComponent<PhotonView>().ViewID, doorInfo.isOpen);
-        }
-
-        foreach (GameObject staticDoor in staticDoors)
-        {
-            Debug.Log("PEE Found StaticDoor");
-            StaticDoorInfo staticDoorInfo = staticDoor.GetComponent<StaticDoorInfo>();
-            doorStates.Add(staticDoor.GetComponent<PhotonView>().ViewID, staticDoorInfo.isOpen);
         }
     }
     private void Update()
@@ -99,10 +79,12 @@ public class DonnyAI : MonoBehaviourPun
                 }
             }
         }
+        else { Movement(); }
         if (moveToLastKnown && !isChasing)
         {
             GoToLastKnownPosition();
         }
+
     }
     private void Movement()
     {
@@ -162,19 +144,23 @@ public class DonnyAI : MonoBehaviourPun
                     {
                         Debug.Log("PEE Door or Static DOor IN Line of sight");
                         bool currentIsOpen = isStaticDoor ? doorObj.GetComponent<StaticDoorInfo>().isOpen : doorObj.GetComponent<DoorInfo>().isOpen;
-                        if (doorStates[doorViewID] != currentIsOpen)
-                        {
-                            walkPoint = hit.point;
-                            isWalkPointSet = true;
-                            Debug.Log("PEE Updating and moving state =!!");
-                            doorStates[doorViewID] = currentIsOpen;
-                            if (doorOpener.StaticDoorCooldown)
+                        if (doorStates.ContainsKey(doorViewID))
                             {
-                                foundDoor = true;
-                                if (doorView.Owner != PhotonNetwork.LocalPlayer) { doorView.RequestOwnership(); }
-                                StartCoroutine(CheckDistanceFromDoor(hit.point, doorView, doorView.gameObject.GetComponent<StaticDoorInfo>()));
-                            }                            
+                            if (doorStates[doorViewID] != currentIsOpen)
+                            {
+                                walkPoint = hit.point;
+                                isWalkPointSet = true;
+                                Debug.Log("PEE Updating and moving state =!!");
+                                doorStates[doorViewID] = currentIsOpen;
+                                if (doorOpener.StaticDoorCooldown)
+                                {
+                                    foundDoor = true;
+                                    if (doorView.Owner != PhotonNetwork.LocalPlayer) { doorView.RequestOwnership(); }
+                                    StartCoroutine(CheckDistanceFromDoor(hit.point, doorView, doorView.gameObject.GetComponent<StaticDoorInfo>()));
+                                }
+                            }
                         }
+                        else { doorStates.Add(doorObj.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
                     }
                 }
             }
