@@ -7253,11 +7253,11 @@ GameObject:
   - component: {fileID: 1465589251395003873}
   - component: {fileID: 4844496933025274418}
   - component: {fileID: 7246771588259798760}
+  - component: {fileID: 6550923865053491728}
   - component: {fileID: 5079068743488397938}
   - component: {fileID: 1793655890319419900}
   - component: {fileID: 4686180929553002932}
   - component: {fileID: 4979323596202036940}
-  - component: {fileID: 6550923865053491728}
   - component: {fileID: 3606622697870548511}
   - component: {fileID: 8782097245454661504}
   m_Layer: 8
@@ -7427,6 +7427,55 @@ MonoBehaviour:
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
+--- !u!114 &6550923865053491728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465589251404388244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d43f87a984341c34dbbdc3e298a0750f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isInGUI: 0
+  slider: {fileID: 4711030071349137219}
+  controller: {fileID: 1465589251395003886}
+  standingHeight: 2.5
+  mouseSensX: 3
+  mouseSensY: 3
+  controllerSensX: 75
+  controllerSensY: 75
+  _crouching: 0
+  _isprone: 0
+  _walking: 0
+  _running: 0
+  playerbody: {fileID: 1465589251404024442}
+  headlight: {fileID: 1771947547481514754}
+  canvas: {fileID: 8092864894386248683}
+  playerCam: {fileID: 342151871687641261}
+  anim: {fileID: 1465589251395003874}
+  footstepManager: {fileID: 4686180929553002932}
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  ToggleSprint: 0
+  ToggleCrouch: 0
+  ToggleProne: 0
+  isBlocked: 0
+  walkingSpeed: 3
+  runningSpeed: 6
+  proneSpeed: 1.25
+  crouchSpeed: 2
+  gravity: 9.81
+  walkingFootstepDistance: 10
+  runningFootstepDistance: 5
+  crouchingFootstepDistance: 12
+  proneFootstepDistance: 16
+  stamina: 100
+  StaminaRegenMultiplier: 10
+  StaminaDecreaseMultiplier: 5
 --- !u!114 &5079068743488397938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7678,55 +7727,6 @@ MonoBehaviour:
   BatteryPercentage: 100
   batterySlider: {fileID: 3852017864103589530}
   DepletionRate: 0.1
---- !u!114 &6550923865053491728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1465589251404388244}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d43f87a984341c34dbbdc3e298a0750f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isInGUI: 0
-  slider: {fileID: 4711030071349137219}
-  controller: {fileID: 1465589251395003886}
-  standingHeight: 2.5
-  mouseSensX: 10
-  mouseSensY: 10
-  controllerSensX: 200
-  controllerSensY: 200
-  _crouching: 0
-  _isprone: 0
-  _walking: 0
-  _running: 0
-  playerbody: {fileID: 1465589251404024442}
-  headlight: {fileID: 1771947547481514754}
-  canvas: {fileID: 8092864894386248683}
-  playerCam: {fileID: 342151871687641261}
-  anim: {fileID: 1465589251395003874}
-  footstepManager: {fileID: 4686180929553002932}
-  groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  ToggleSprint: 0
-  ToggleCrouch: 0
-  ToggleProne: 0
-  isBlocked: 0
-  walkingSpeed: 3
-  runningSpeed: 6
-  proneSpeed: 1.25
-  crouchSpeed: 2
-  gravity: 9.81
-  walkingFootstepDistance: 10
-  runningFootstepDistance: 5
-  crouchingFootstepDistance: 12
-  proneFootstepDistance: 16
-  stamina: 100
-  StaminaRegenMultiplier: 10
-  StaminaDecreaseMultiplier: 5
 --- !u!114 &3606622697870548511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25218,7 +25218,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: D-Pad/Left
+  m_text: D-Pad Left
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fb06ac70996c2ee4080722c3843d10e2, type: 2}
   m_sharedMaterial: {fileID: -5336705229083800233, guid: fb06ac70996c2ee4080722c3843d10e2,
