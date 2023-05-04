@@ -112,7 +112,10 @@ public class PlayerMovement : MonoBehaviourPun
         Vector2 move = UserInput.instance.moveInput;
         bool isCrouching = UserInput.instance.CrouchHeld || isCrouchingToggle;
         bool isProne = UserInput.instance.ProneHeld|| isProneToggle;
-        bool isRunning = UserInput.instance.SprintHeld || isRunningToggle && controller.velocity.magnitude > 0 && stamina > 0f && !isBlocked && !isProne && !isCrouching && move.y >= 0;
+        bool isRunning = UserInput.instance.SprintHeld && controller.velocity.magnitude > 0
+            && stamina > 0f && !isBlocked && !isProne && !isCrouching && move.y >= 0
+            || isRunningToggle && controller.velocity.magnitude > 0 && stamina > 0f
+            && !isBlocked && !isProne && !isCrouching && move.y >= 0;
         float speed = isRunning ? runningSpeed : isCrouching ? crouchSpeed : isProne ? proneSpeed : walkingSpeed;
         Vector3 movement = move.y * transform.forward + move.x * transform.right;
         if (!controller.isGrounded)
@@ -186,7 +189,7 @@ public class PlayerMovement : MonoBehaviourPun
             {
                 footstepDistance = _walking ? walkingFootstepDistance : runningFootstepDistance;
             }
-            _footstepDistanceCounter += speed * Time.fixedDeltaTime;
+            _footstepDistanceCounter += speed /2 * Time.fixedDeltaTime;
             if (_footstepDistanceCounter >= footstepDistance)
             {
                 _footstepDistanceCounter = 0;
@@ -197,7 +200,7 @@ public class PlayerMovement : MonoBehaviourPun
     }
     public void Stamina(bool isRunning)
     {
-        if (isRunning && controller.velocity.magnitude > 0)
+        if (isRunning)
         {
             stamina = Mathf.Clamp(stamina - (StaminaDecreaseMultiplier * Time.deltaTime), 0.0f, 100f);
             StaminaRegenTimer = 0.0f;

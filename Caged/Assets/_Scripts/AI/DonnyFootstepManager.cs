@@ -27,7 +27,7 @@ public class DonnyFootstepManager : MonoBehaviourPun
         audioSource.volume = 1;
         audioSource.PlayOneShot(SpawnClip);
     }
-    public void Update()
+   /* public void Update()
     {
         float footstepDistance = AI._walking ? walkingFootstepDistance : runningFootstepDistance;
         if (AI.agent.speed == AI.agentWalkSpeed && AI.agent.velocity != Vector3.zero)
@@ -44,7 +44,7 @@ public class DonnyFootstepManager : MonoBehaviourPun
             SurfaceType surfaceType = DetectSurfaceType();
             PlayFootstep(surfaceType, AI._walking, AI._running);
         }
-    }
+    */
 
     private SurfaceType DetectSurfaceType()
     {

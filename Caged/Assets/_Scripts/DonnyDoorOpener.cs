@@ -30,7 +30,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             }
             if (DI.isLocked)
             {
-                donnyAI.SearchWalkPoint();
+                //donnyAI.SearchWalkPoint();
                 return;
             }
             else if (!DoorCooldown && !DI.isOpen)
@@ -66,7 +66,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             }
             if (DI.isLocked)
             {
-                donnyAI.SearchWalkPoint();
+                //donnyAI.SearchWalkPoint();
                 return;
             }
             else if (!DoorCooldown && !DI.isOpen)
@@ -94,7 +94,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
     IEnumerator Door(DoorInfo info, int viewid)
     {
         info.isOpen = true;
-        donnyAI.doorStates[viewid] = info.isOpen;
+        //donnyAI.doorStates[viewid] = info.isOpen;
         StartCoroutine(EnableListeningAfterDelay(1.5f));
         info.DoorSound(true);
         float duration = 0.5f;
@@ -119,7 +119,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
     public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
     {
         info.isOpen = true;
-        donnyAI.doorStates[viewid] = info.isOpen;
+       // donnyAI.doorStates[viewid] = info.isOpen;
         StartCoroutine(EnableListeningAfterDelay(1.5f));
         float elapsedTime = 0f;
         while (elapsedTime < 0.4f)
@@ -136,8 +136,8 @@ public class DonnyDoorOpener : MonoBehaviourPun
     }
     public IEnumerator EnableListeningAfterDelay(float delay)
     {
-        donnyAI.isListening = false;
+        //donnyAI.isListening = false;
         yield return new WaitForSeconds(delay);
-        donnyAI.isListening = true;
+        //donnyAI.isListening = true;
     }
 }
