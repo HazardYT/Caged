@@ -36,12 +36,12 @@ public class InGameSettingsMenu : MonoBehaviourPun
             if(!PhotonNetwork.OfflineMode){
                 if (!menu.activeSelf && !transform.root.GetComponent<PlayerMovement>().isInGUI){
                     menuon();
-                }
+                } else menuoff();
             } else if(PhotonNetwork.OfflineMode){
                 if (!menu.activeSelf && !transform.root.GetComponent<PlayerMoveOffline>().isInGUI){
                     menuon();
-                }
-            } else menuoff();
+                } else menuoff();
+            }
         }
         if (UserInput.instance.ExitPressed && UserInput.instance.currentLookInput is Gamepad)
         {
@@ -54,11 +54,8 @@ public class InGameSettingsMenu : MonoBehaviourPun
         menu.SetActive(true);
         if(!PhotonNetwork.OfflineMode){this.transform.root.GetComponent<PlayerMovement>().enabled = false;}
         else{this.transform.root.GetComponent<PlayerMoveOffline>().enabled = false;}
-        if (UserInput.instance.currentLookInput is Mouse)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         return;
     }
     public void menuoff()
@@ -66,11 +63,8 @@ public class InGameSettingsMenu : MonoBehaviourPun
         menu.SetActive(false);
         if(!PhotonNetwork.OfflineMode){this.transform.root.GetComponent<PlayerMovement>().enabled = true;}
         else{this.transform.root.GetComponent<PlayerMoveOffline>().enabled = true;}
-        if (UserInput.instance.currentLookInput is Mouse)
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
         return;
     }
     public void GraphicsTab()
