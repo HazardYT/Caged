@@ -18,11 +18,7 @@ public class PlayerMoveOffline : MonoBehaviourPun
     [SerializeField] private bool _walking;
     [SerializeField] private bool _running;
     private CapsuleCollider capsuleCollider;
-    public Transform playerbody;
-    public Transform headlight;
-    public Canvas canvas = null;
     public Camera playerCam;
-    public Animator anim = null;
     public FootstepManager footstepManager;
     public LayerMask groundLayerMask;
     public bool ToggleSprint = false;
@@ -57,9 +53,6 @@ public class PlayerMoveOffline : MonoBehaviourPun
             return; }
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        canvas.gameObject.SetActive(true);
-        playerbody.gameObject.SetActive(false);
-        headlight.gameObject.SetActive(false);
         capsuleCollider = GetComponent<CapsuleCollider>();
     }
     public void Update()
@@ -126,15 +119,12 @@ public class PlayerMoveOffline : MonoBehaviourPun
         Stamina(isRunning);
         Crouch(isCrouching, isProne, speed);
         if(PhotonNetwork.OfflineMode){return;}
-        Animation(isRunning);
     }
     public void Crouch(bool isCrouching, bool isProne, float speed)
     {
         // Crouch
         if (isCrouching)
         {
-            Prone = false;
-            Crouching = true;
             controller.height = 1.25f;
             capsuleCollider.height = 1.25f;
             controller.center = new Vector3(0, -0.625f, 0);
@@ -143,8 +133,6 @@ public class PlayerMoveOffline : MonoBehaviourPun
         // Prone
         else if (isProne)
         {
-            Prone = true;
-            Crouching = false;
             controller.height = 0.75f;
             capsuleCollider.height = 0.75f;
             controller.center = new Vector3(0, -0.875f, 0);
@@ -171,8 +159,6 @@ public class PlayerMoveOffline : MonoBehaviourPun
                 capsuleCollider.height = standingHeight;
                 controller.center = new Vector3(0, 0, 0);
                 capsuleCollider.center = new Vector3(0, 0, 0);
-                Crouching = false;
-                Prone = false;
             }
         }
         if (controller.isGrounded && (_walking || _running))
@@ -231,31 +217,6 @@ public class PlayerMoveOffline : MonoBehaviourPun
             slider.fillRect.GetComponent<Image>().color = Color.red;
         }
     }
-    public void Animation(bool running)
-    {
-        if(PhotonNetwork.OfflineMode){return;}
-        if (controller.isGrounded)
-        {
-            if (controller.velocity.magnitude > 0)
-            {
-                if (running)
-                {
-                    Running = true;
-                    Walking = false;
-                }
-                if (!running)
-                {
-                    Walking = true;
-                    Running = false;
-                }
-            }
-            else
-            {
-                Walking = false;
-                Running = false;
-            }
-        }
-    }
     private SurfaceType DetectSurfaceType()
     {
         RaycastHit hit;
@@ -276,49 +237,5 @@ public class PlayerMoveOffline : MonoBehaviourPun
             }
         }
         return SurfaceType.Default;
-    }
-    public bool Crouching
-    {
-        get { return _crouching; }
-        set
-        {
-            if (value == _crouching) return;
-            _crouching = value;
-            if(PhotonNetwork.OfflineMode){return;}
-            anim.SetBool("Crouching", _crouching);
-        }
-    }
-    public bool Walking
-    {
-        get { return _walking; }
-        set
-        {
-            if (value == _walking) return;
-            _walking = value;
-            if(PhotonNetwork.OfflineMode){return;}
-            anim.SetBool("Walking", _walking);
-        }
-    }
-    public bool Running
-    {
-        get { return _running; }
-        set
-        {
-            if (value == _running) return;
-            _running = value;
-            if(PhotonNetwork.OfflineMode){return;}
-            anim.SetBool("Running", _running);
-        }
-    }
-    public bool Prone
-    {
-        get { return _isprone; }
-        set
-        {
-            if (value == _isprone) return;
-            _isprone = value;
-            if(PhotonNetwork.OfflineMode){return;}
-            anim.SetBool("Prone", _isprone);
-        }
     }
 }

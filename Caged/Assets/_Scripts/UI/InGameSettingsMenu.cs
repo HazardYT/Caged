@@ -33,9 +33,14 @@ public class InGameSettingsMenu : MonoBehaviourPun
         if (!photonView.IsMine) return;
         if (UserInput.instance.MenuPressed)
         {
-            if (!menu.activeSelf && !transform.root.GetComponent<PlayerMovement>().isInGUI)
-            {
-                menuon();
+            if(!PhotonNetwork.OfflineMode){
+                if (!menu.activeSelf && !transform.root.GetComponent<PlayerMovement>().isInGUI){
+                    menuon();
+                }
+            } else if(PhotonNetwork.OfflineMode){
+                if (!menu.activeSelf && !transform.root.GetComponent<PlayerMoveOffline>().isInGUI){
+                    menuon();
+                }
             } else menuoff();
         }
         if (UserInput.instance.ExitPressed && UserInput.instance.currentLookInput is Gamepad)
@@ -47,7 +52,8 @@ public class InGameSettingsMenu : MonoBehaviourPun
     public void menuon()
     {
         menu.SetActive(true);
-        this.transform.root.GetComponent<PlayerMovement>().enabled = false;
+        if(!PhotonNetwork.OfflineMode){this.transform.root.GetComponent<PlayerMovement>().enabled = false;}
+        else{this.transform.root.GetComponent<PlayerMoveOffline>().enabled = false;}
         if (UserInput.instance.currentLookInput is Mouse)
         {
             Cursor.lockState = CursorLockMode.None;
@@ -58,7 +64,8 @@ public class InGameSettingsMenu : MonoBehaviourPun
     public void menuoff()
     {
         menu.SetActive(false);
-        this.transform.root.GetComponent<PlayerMovement>().enabled = true;
+        if(!PhotonNetwork.OfflineMode){this.transform.root.GetComponent<PlayerMovement>().enabled = true;}
+        else{this.transform.root.GetComponent<PlayerMoveOffline>().enabled = true;}
         if (UserInput.instance.currentLookInput is Mouse)
         {
             Cursor.visible = false;
@@ -120,15 +127,18 @@ public class InGameSettingsMenu : MonoBehaviourPun
     }
     public void ToggleSprint(bool i)
     {
-        transform.root.GetComponent<PlayerMovement>().ToggleSprint = i;
+        if(!PhotonNetwork.OfflineMode){transform.root.GetComponent<PlayerMovement>().ToggleSprint = i;}
+        else{transform.root.GetComponent<PlayerMoveOffline>().ToggleSprint = i;}
     }
     public void ToggleCrouch(bool i)
     {
-        transform.root.GetComponent<PlayerMovement>().ToggleCrouch = i;
+        if(!PhotonNetwork.OfflineMode){transform.root.GetComponent<PlayerMovement>().ToggleCrouch = i;}
+        else{transform.root.GetComponent<PlayerMoveOffline>().ToggleCrouch = i;}
     }
     public void ToggleProne(bool i)
     {
-        transform.root.GetComponent<PlayerMovement>().ToggleProne = i;
+        if(!PhotonNetwork.OfflineMode){transform.root.GetComponent<PlayerMovement>().ToggleProne = i;}
+        else{transform.root.GetComponent<PlayerMoveOffline>().ToggleProne = i;}
     }
     public void CloseSettings()
     {

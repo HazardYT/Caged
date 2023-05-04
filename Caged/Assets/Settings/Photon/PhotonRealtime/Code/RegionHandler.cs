@@ -470,6 +470,7 @@ namespace Photon.Realtime
             Stopwatch sw = new Stopwatch();
             for (this.CurrentAttempt = 0; this.CurrentAttempt < Attempts; this.CurrentAttempt++)
             {
+            #pragma warning disable 0219
                 bool overtime = false;
                 sw.Reset();
                 sw.Start();
@@ -496,6 +497,7 @@ namespace Photon.Realtime
                     System.Threading.Thread.Sleep(1);
                     #endif
                 }
+            
 
 
                 sw.Stop();
@@ -573,6 +575,7 @@ namespace Photon.Realtime
 
                     yield return new WaitForSecondsRealtime(0.01f); // keep this loop tight, to avoid adding local lag to rtt.
                 }
+            #pragma warning restore 0219
 
 
                 sw.Stop();

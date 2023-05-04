@@ -35,7 +35,9 @@ public class InventoryManager : MonoBehaviourPun
 
     public void Start()
     {
-        hudText = GameObject.Find("GameUI").GetComponent<HudText>();
+        if(!PhotonNetwork.OfflineMode){
+            hudText = GameObject.Find("GameUI").GetComponent<HudText>();
+        }
         if (!photonView.IsMine)
         {
             this.enabled = false;
