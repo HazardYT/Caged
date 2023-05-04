@@ -30,7 +30,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             }
             if (DI.isLocked)
             {
-                //donnyAI.SearchWalkPoint();
+                donnyAI.SearchWalkPoint();
                 return;
             }
             else if (!DoorCooldown && !DI.isOpen)
@@ -66,7 +66,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             }
             if (DI.isLocked)
             {
-                //donnyAI.SearchWalkPoint();
+                donnyAI.SearchWalkPoint();
                 return;
             }
             else if (!DoorCooldown && !DI.isOpen)
@@ -94,8 +94,8 @@ public class DonnyDoorOpener : MonoBehaviourPun
     IEnumerator Door(DoorInfo info, int viewid)
     {
         info.isOpen = true;
-        //donnyAI.doorStates[viewid] = info.isOpen;
-        StartCoroutine(EnableListeningAfterDelay(1.5f));
+        donnyAI.doorStates[viewid] = info.isOpen;
+        StartCoroutine(EnableListeningAfterDelay(2f));
         info.DoorSound(true);
         float duration = 0.5f;
         Vector3 euler = info.transform.localRotation.eulerAngles;
@@ -119,8 +119,8 @@ public class DonnyDoorOpener : MonoBehaviourPun
     public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
     {
         info.isOpen = true;
-       // donnyAI.doorStates[viewid] = info.isOpen;
-        StartCoroutine(EnableListeningAfterDelay(1.5f));
+        donnyAI.doorStates[viewid] = info.isOpen;
+        StartCoroutine(EnableListeningAfterDelay(2f));
         float elapsedTime = 0f;
         while (elapsedTime < 0.4f)
         {
@@ -130,14 +130,14 @@ public class DonnyDoorOpener : MonoBehaviourPun
         }
         info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
         info.transform.localRotation = info.OpenRot;
-        yield return new WaitForSeconds(0.5f);
-        StaticDoorCooldown = false;
         photonView.RPC(nameof(DonnyRPC.SetStaticDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
+        yield return new WaitForSeconds(3f);
+        StaticDoorCooldown = false;
     }
     public IEnumerator EnableListeningAfterDelay(float delay)
     {
-        //donnyAI.isListening = false;
+        donnyAI.isListening = false;
         yield return new WaitForSeconds(delay);
-        //donnyAI.isListening = true;
+        donnyAI.isListening = true;
     }
 }

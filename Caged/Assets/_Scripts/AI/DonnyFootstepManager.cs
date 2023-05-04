@@ -4,6 +4,7 @@ using Photon.Pun;
 public class DonnyFootstepManager : MonoBehaviourPun
 {
     [SerializeField] private DonnyAI AI;
+    [SerializeField] private ProceduralAnimation PA;
     public AudioSource audioSource;
     public AudioClip SpawnClip;
     public AudioClip[] grassFootsteps;
@@ -13,38 +14,50 @@ public class DonnyFootstepManager : MonoBehaviourPun
 
     //Variables
     [SerializeField] private LayerMask groundLayerMask;
-    public float walkingFootstepDistance = 13.5f;
-    public float runningFootstepDistance = 8;
-    public float crouchingFootstepDistance = 16;
-    public float proneFootstepDistance = 20f;
-    private float _footstepDistanceCounter;
 
+    public float crouchingVolume = 0.2f;
     public float walkingVolume = 0.3f;
     public float runningVolume = 0.5f;
+    [SerializeField] float distanceThreshold = 0.5f;
 
+    public Vector3 lastRightFootPos;
+    public Vector3 lastLeftFootPos;
+    private float rightFootTimer = 0f;
+    private float leftFootTimer = 0f;
+    public float footstepInterval = 0.5f;
     private void Start()
     {
         audioSource.volume = 1;
         audioSource.PlayOneShot(SpawnClip);
     }
-   /* public void Update()
+    public void Update()
     {
-        float footstepDistance = AI._walking ? walkingFootstepDistance : runningFootstepDistance;
-        if (AI.agent.speed == AI.agentWalkSpeed && AI.agent.velocity != Vector3.zero)
+        rightFootTimer += Time.deltaTime;
+        leftFootTimer += Time.deltaTime;
+
+        if (Physics.Raycast(PA.rightFootTarget.position, Vector3.down, distanceThreshold, groundLayerMask) && rightFootTimer >= footstepInterval)
         {
-            _footstepDistanceCounter += AI.agent.speed * 5 * Time.deltaTime;
+            Vector3 currentRightFootPosition = PA.rightFootTarget.position;
+            if (currentRightFootPosition != lastRightFootPos)
+            {
+                SurfaceType surfaceType = DetectSurfaceType();
+                PlayFootstep(surfaceType, AI._walking, AI._running);
+            }
+            lastRightFootPos = currentRightFootPosition;
+            rightFootTimer = 0f;
         }
-        else if (AI.agent.speed == AI.agentRunSpeed && AI.agent.velocity != Vector3.zero)
+        if (Physics.Raycast(PA.leftFootTarget.position, Vector3.down, distanceThreshold, groundLayerMask) && leftFootTimer >= footstepInterval)
         {
-            _footstepDistanceCounter += AI.agent.speed * 3 * Time.deltaTime;
+            Vector3 currentLeftFootPosition = PA.leftFootTarget.position;
+            if (currentLeftFootPosition != lastLeftFootPos)
+            {
+                SurfaceType surfaceType = DetectSurfaceType();
+                PlayFootstep(surfaceType, AI._walking, AI._running);
+            }
+            lastLeftFootPos = currentLeftFootPosition;
+            leftFootTimer = 0f;
         }
-        if (_footstepDistanceCounter >= footstepDistance)
-        {
-            _footstepDistanceCounter = 0;
-            SurfaceType surfaceType = DetectSurfaceType();
-            PlayFootstep(surfaceType, AI._walking, AI._running);
-        }
-    */
+    }
 
     private SurfaceType DetectSurfaceType()
     {
@@ -86,7 +99,7 @@ public class DonnyFootstepManager : MonoBehaviourPun
                 footstepSounds = ventFootsteps;
                 break;
             default:
-                footstepSounds = grassFootsteps;
+                footstepSounds = woodFootsteps;
                 break;
         }
 
@@ -105,11 +118,11 @@ public class DonnyFootstepManager : MonoBehaviourPun
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.Play();
 
-        photonView.RPC("SyncFootsteps", RpcTarget.Others, surfaceType, randomIndex, photonView.ViewID, walking, running);
+        photonView.RPC("SyncFootsteps", RpcTarget.Others, surfaceType, randomIndex, photonView.ViewID, walking, running, audioSource.volume);
     }
 
     [PunRPC]
-    public void SyncFootsteps(SurfaceType surfaceType, int clipIndex, int viewid,bool walking, bool running)
+    public void SyncFootsteps(SurfaceType surfaceType, int clipIndex, int viewid,bool walking, bool running, float volume)
     {
         PhotonView view = PhotonView.Find(viewid);
         AudioSource audioSource = view.gameObject.GetComponent<DonnyFootstepManager>().audioSource;
@@ -127,20 +140,11 @@ public class DonnyFootstepManager : MonoBehaviourPun
                 footstepSounds = cementFootsteps;
                 break;
             default:
-                footstepSounds = grassFootsteps;
+                footstepSounds = woodFootsteps;
                 break;
         }
-
         audioSource.clip = footstepSounds[clipIndex];
-
-        if (walking)
-        {
-            audioSource.volume = walkingVolume;
-        }
-        else if (running)
-        {
-            audioSource.volume = runningVolume;
-        }
+        audioSource.volume = volume;
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.Play();
     }

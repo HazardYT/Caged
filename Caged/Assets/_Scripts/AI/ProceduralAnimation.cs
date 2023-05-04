@@ -126,7 +126,7 @@ public class ProceduralAnimation : MonoBehaviour
         lastBodyPos = transform.position;
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(leftFootTarget.position, 0.2f);
         Gizmos.DrawWireSphere(rightFootTarget.position, 0.2f);

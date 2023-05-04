@@ -30,13 +30,13 @@ public class DonnyDoorCloser : MonoBehaviourPun
     {
         DoorCooldown = true;
         info.isOpen = false;
-       // donnyAI.doorStates[viewid] = info.isOpen;
+        donnyAI.doorStates[viewid] = info.isOpen;
         StartCoroutine(doorOpener.EnableListeningAfterDelay(1.2f));
         info.DoorSound(false);
         Quaternion startRot = info.transform.localRotation;
         Quaternion targetRot = info.OgRot;
         float angleDiff = Quaternion.Angle(startRot, targetRot);
-        float duration = angleDiff / 180f; // adjust duration based on angle difference
+        float duration = angleDiff / 180f;
         float elapsedTime = 0f;
         while (elapsedTime < duration)
         {
