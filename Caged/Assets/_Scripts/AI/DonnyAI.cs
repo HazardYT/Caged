@@ -184,9 +184,9 @@ public class DonnyAI : MonoBehaviourPun
             Running = true;
             Walking = false;
             proceduralAnim.smoothness = 3;
-            proceduralAnim.stepHeight = 0.55f;
-            proceduralAnim.stepLength = 2.3f;
-            proceduralAnim.angularSpeed = 12;
+            proceduralAnim.stepHeight = 0.5f;
+            proceduralAnim.stepLength = 2.35f;
+            proceduralAnim.angularSpeed = 10;
             proceduralAnim.bounceAmplitude = 0.2f;
         }
         if (agent.speed == agentWalkSpeed)
@@ -465,6 +465,58 @@ public class DonnyAI : MonoBehaviourPun
             isWalkPointSet = false;
         }
     }
+    public void SearchWalkPoint()
+    {
+        if (moveToLastKnown) return;
+
+        bool validWalkPoint = false;
+        int attempts = 0;
+
+        do
+        {
+            attempts++;
+            Debug.Log("finding walkpoint Attempt: " + attempts);
+
+            // Calculate random angle within 45-degree angle from the front direction of the agent's camera
+            float randomAngle = Random.Range(-Mathf.PI / 4, Mathf.PI / 4);
+            float x = walkPointRange * Mathf.Cos(randomAngle);
+            float z = walkPointRange * Mathf.Sin(randomAngle);
+
+            // Use the agent's camera forward direction instead of the agent's forward direction
+            Vector3 rotatedDirection = Quaternion.Euler(0, doorOpener.DonnyCam.transform.eulerAngles.y, 0) * new Vector3(x, 0, z);
+            Vector3 walkPointDirection = new Vector3(transform.position.x + rotatedDirection.x, transform.position.y, transform.position.z + rotatedDirection.z);
+            NavMesh.SamplePosition(walkPointDirection, out NavMeshHit hit, walkPointRange, NavMesh.AllAreas);
+
+            agent.SetDestination(hit.position);
+
+            // Check if the path is complete without creating a new NavMeshPath
+            if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+            {
+                validWalkPoint = true;
+            }
+            if (validWalkPoint)
+            {
+                walkPoint = hit.position;
+                isWalkPointSet = true;
+                Debug.Log("Found walkpoint");
+            }
+            else
+            {
+                Debug.Log("finding Random Position");
+                Vector3 randomDirection = Random.insideUnitSphere * walkPointRange;
+                randomDirection += transform.position;
+                NavMesh.SamplePosition(randomDirection, out hit, walkPointRange, NavMesh.AllAreas);
+
+                agent.SetDestination(hit.position);
+
+                if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+                {
+                    walkPoint = hit.position;
+                    isWalkPointSet = true;
+                }
+            }
+        } while (!validWalkPoint && attempts < maxWalkPointAttempts);
+    }
     private void GoToLastKnownPosition()
     {
         agent.speed = agentRunSpeed;
@@ -532,58 +584,6 @@ public class DonnyAI : MonoBehaviourPun
             // Set the agent's destination to the predicted position
             agent.SetDestination(predictedPosition);
         }
-    }
-    public void SearchWalkPoint()
-    {
-        if (moveToLastKnown) return;
-
-        bool validWalkPoint = false;
-        int attempts = 0;
-
-        do
-        {
-            attempts++;
-            Debug.Log("finding walkpoint Attempt: " + attempts);
-
-            // Calculate random angle within 45-degree angle from the front direction of the agent's camera
-            float randomAngle = Random.Range(-Mathf.PI / 4, Mathf.PI / 4);
-            float x = walkPointRange * Mathf.Cos(randomAngle);
-            float z = walkPointRange * Mathf.Sin(randomAngle);
-
-            // Use the agent's camera forward direction instead of the agent's forward direction
-            Vector3 rotatedDirection = Quaternion.Euler(0, doorOpener.DonnyCam.transform.eulerAngles.y, 0) * new Vector3(x, 0, z);
-            Vector3 walkPointDirection = new Vector3(transform.position.x + rotatedDirection.x, transform.position.y, transform.position.z + rotatedDirection.z);
-            NavMesh.SamplePosition(walkPointDirection, out NavMeshHit hit, walkPointRange, NavMesh.AllAreas);
-
-            agent.SetDestination(hit.position);
-
-            // Check if the path is complete without creating a new NavMeshPath
-            if (agent.pathStatus == NavMeshPathStatus.PathComplete)
-            {
-                validWalkPoint = true;
-            }
-            if (validWalkPoint)
-            {
-                walkPoint = hit.position;
-                isWalkPointSet = true;
-                Debug.Log("Found walkpoint");
-            }
-            else
-            {
-                Debug.Log("finding Random Position");
-                Vector3 randomDirection = Random.insideUnitSphere * walkPointRange;
-                randomDirection += transform.position;
-                NavMesh.SamplePosition(randomDirection, out hit, walkPointRange, NavMesh.AllAreas);
-
-                agent.SetDestination(hit.position);
-
-                if (agent.pathStatus == NavMeshPathStatus.PathComplete)
-                {
-                    walkPoint = hit.position;
-                    isWalkPointSet = true;
-                }
-            }
-        } while (!validWalkPoint && attempts < maxWalkPointAttempts);
     }
     private void Listening()
     {

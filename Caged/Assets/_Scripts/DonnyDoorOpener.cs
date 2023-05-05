@@ -103,6 +103,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             info.Z ? new Vector3(euler.x, euler.y, DonnyCam.transform.forward.z < 0 ? -90f : 90f) :
             new Vector3(euler.x, euler.y, DonnyCam.transform.forward.x < 0 ? 90f : -90f));
         Quaternion startRot = info.transform.localRotation;
+        info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
         float elapsedTime = 0f;
         while (elapsedTime < duration)
         {
@@ -110,7 +111,6 @@ public class DonnyDoorOpener : MonoBehaviourPun
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
         info.transform.localRotation = newRot;
         photonView.RPC(nameof(DonnyRPC.SetDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
         yield return new WaitForSeconds(1.5f);
@@ -120,6 +120,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
     {
         info.isOpen = true;
         donnyAI.doorStates[viewid] = info.isOpen;
+        info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
         StartCoroutine(EnableListeningAfterDelay(2f));
         float elapsedTime = 0f;
         while (elapsedTime < 0.4f)
@@ -128,7 +129,6 @@ public class DonnyDoorOpener : MonoBehaviourPun
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
         info.transform.localRotation = info.OpenRot;
         photonView.RPC(nameof(DonnyRPC.SetStaticDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
         yield return new WaitForSeconds(3f);
