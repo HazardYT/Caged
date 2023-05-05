@@ -1,8 +1,6 @@
 #pragma warning disable 0618
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using mudz;
+using UnityEngine.InputSystem;
 
 public class LiDAR : MonoBehaviour
 {
@@ -12,7 +10,7 @@ public class LiDAR : MonoBehaviour
     Camera cam;
 
     [SerializeField] GameObject line;
-
+    private byte mode = 0;
     public int numberOfRays = 10;
     public float coneAngle = 45f;
     public float maxDistance = 10f;
@@ -23,73 +21,85 @@ public class LiDAR : MonoBehaviour
     void Awake(){
         cam = GetComponent<Camera>();
     }
-
-    void Start(){
-        // PlaceDot(transform.position, false);
-        // PlaceDot(new Vector3(
-        //     transform.position.x + 2, 
-        //     transform.position.y, 
-        //     transform.position.z
-        //     ), true);
-    }
     void Update(){
-        Scan();
+        if (Mouse.current.leftButton.isPressed)
+        {
+            if (mode == 0) { ConeScan(); }
+            else if (mode == 1) { LineScan(); }
+            else if (mode == 2) { SpiralScan(); }
+        }
+
+        if (UserInput.instance.FlashlightModePressed)
+        {
+            if (mode >= 2)
+            {
+                mode = 0;
+            }
+            else
+            {
+                mode++;
+            }
+        }
     }
+    void SpiralScan()
+    {
+        Vector3 forward = cam.transform.forward;
+        Quaternion startRotation = Quaternion.AngleAxis(-coneAngle / 2, transform.up);
 
-    void Scan(){
-        //use a lot of physics.raycast to find an object and place a dot on the raycast hit.point
-        
-        // Vector3 forward = transform.forward;
-        // Quaternion startRotation = Quaternion.AngleAxis(-coneAngle / 2, transform.up);
+        for (int i = 0; i < numberOfRays; i++)
+        {
+            float inclination = Mathf.Acos(1 - i / (numberOfRays - 1f) * (1 - Mathf.Cos(coneAngle * Mathf.Deg2Rad)));
+            float azimuth = 2 * Mathf.PI * i / numberOfRays;
 
-        // for (int i = 0; i < numberOfRays; i++)
-        // {
-        //     float angleStep = coneAngle / (numberOfRays - 1);
-        //     Quaternion currentRotation = Quaternion.AngleAxis(angleStep * i, transform.up);
-        //     Vector3 direction = currentRotation * startRotation * forward;
+            float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
+            float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
+            float z = Mathf.Cos(inclination);
 
-        //     Ray ray = new Ray(transform.position, direction);
-        //     RaycastHit hit;
+            Vector3 direction = new Vector3(x, y, z);
+            direction = transform.rotation * startRotation * direction;
 
-        //     if (Physics.Raycast(ray, out hit, maxDistance, layerMask))
-        //     {
-        //         Debug.DrawLine(ray.origin, hit.point, Color.green);
-        //         // Do something with the hit object, e.g., hit.collider.gameObject
-        //     }
-        //     else
-        //     {
-        //         Debug.DrawRay(ray.origin, direction * maxDistance, Color.red);
-        //     }
-        // }
-        // Vector3 forward = transform.forward;
-        // Quaternion startRotation = Quaternion.AngleAxis(-coneAngle / 2, transform.up);
+            Ray ray = new Ray(transform.position, direction);
+            RaycastHit hit;
 
-        // for (int i = 0; i < numberOfRays; i++)
-        // {
-        //     float inclination = Mathf.Acos(1 - i / (numberOfRays - 1f) * (1 - Mathf.Cos(coneAngle * Mathf.Deg2Rad)));
-        //     float azimuth = 2 * Mathf.PI * i / numberOfRays;
+            if (Physics.Raycast(ray, out hit, maxDistance, layerMask))
+            {
+                DrawLine(hit.point);
+                Debug.DrawLine(ray.origin, hit.point, Color.green);
+                PlaceDot(hit.point, false);
+            }
+            else
+            {
+                Debug.DrawRay(ray.origin, direction * maxDistance, Color.red);
+            }
+        }
+    }
+    void LineScan(){
+         Vector3 forward = cam.transform.forward;
+         Quaternion startRotation = Quaternion.AngleAxis(-coneAngle / 2, transform.up);
 
-        //     float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
-        //     float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
-        //     float z = Mathf.Cos(inclination);
+         for (int i = 0; i < numberOfRays; i++)
+         {
+             float angleStep = coneAngle / (numberOfRays - 1);
+             Quaternion currentRotation = Quaternion.AngleAxis(angleStep * i, transform.up);
+             Vector3 direction = currentRotation * startRotation * forward;
 
-        //     Vector3 direction = new Vector3(x, y, z);
-        //     direction = transform.rotation * startRotation * direction;
+             Ray ray = new Ray(transform.position, direction);
+             RaycastHit hit;
 
-        //     Ray ray = new Ray(transform.position, direction);
-        //     RaycastHit hit;
-
-        //     if (Physics.Raycast(ray, out hit, maxDistance, layerMask))
-        //     {
-        //         Debug.DrawLine(ray.origin, hit.point, Color.green);
-        //         // Do something with the hit object, e.g., hit.collider.gameObject
-        //     }
-        //     else
-        //     {
-        //         Debug.DrawRay(ray.origin, direction * maxDistance, Color.red);
-        //     }
-        // }
-        Vector3 forward = transform.forward;
+             if (Physics.Raycast(ray, out hit, maxDistance, layerMask))
+             {
+                DrawLine(hit.point);
+                Debug.DrawLine(ray.origin, hit.point, Color.green);
+                PlaceDot(hit.point, false);
+            }
+             else
+             {
+                 Debug.DrawRay(ray.origin, direction * maxDistance, Color.red);
+             }
+         }
+    }
+    void ConeScan(){
+        Vector3 forward = cam.transform.forward;
 
         for (int i = 0; i < numberOfRays; i++)
         {
@@ -110,7 +120,6 @@ public class LiDAR : MonoBehaviour
             {
                 DrawLine(hit.point);
                 Debug.DrawLine(ray.origin, hit.point, Color.green);
-                // Do something with the hit object, e.g., hit.collider.gameObject
                 PlaceDot(hit.point, false);
             }
             else
@@ -131,7 +140,7 @@ public class LiDAR : MonoBehaviour
     }
 
     void PlaceDot(Vector3 pos, bool isEnemy){
-        float size = Random.Range(0.06f, 0.1f);
+        float size = 0.05f;
         Color32 chosenColor = new Color32(255, 255, 255, 255);
         if(isEnemy){
             liDAR_Enemy.Emit(pos, noVelocity, size, 120, chosenColor);

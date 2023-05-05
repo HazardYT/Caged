@@ -117,7 +117,8 @@ public class DonnyAI : MonoBehaviourPun
             foundDoor = false;
             isListening = false;
             ChasePlayer();
-            CheckForPlayersInAttackRange();
+            CheckAttackRange();
+            OpenCloseHidingSpots();
         }
         CheckForPlayers();
     }
@@ -200,35 +201,78 @@ public class DonnyAI : MonoBehaviourPun
             proceduralAnim.bounceAmplitude = 0.2f;
         }
     }
-    private void CheckForPlayersInAttackRange()
+    public void OpenCloseHidingSpots()
+    {
+        Collider[] playersInAttackRange = Physics.OverlapSphere(transform.position, attackRange, whatIsDoor);
+        foreach (Collider door in playersInAttackRange)
+        {
+            if (door.CompareTag("StaticDoor"))
+            {
+                RaycastHit hit;
+                if (Physics.Raycast(agentEyes.position, (door.transform.position - agentEyes.position), out hit))
+                {
+                    if (hit.collider.CompareTag("StaticDoor"))
+                    {
+                        StaticDoorOpen(door, hit);
+                    }
+                }
+            }
+        }
+    }
+    private void CheckAttackRange()
     {
         Debug.Log("CheckForPlayersInAttackRange");
-        Collider[] playersInAttackRange = Physics.OverlapSphere(transform.position, attackRange, whatIsDoor);
+        Collider[] playersInAttackRange = Physics.OverlapSphere(transform.position, attackRange, whatIsPlayer);
         foreach (Collider player in playersInAttackRange)
         {
-            if (player.CompareTag("Player") || player.CompareTag("StaticDoor"))
+            if (player.CompareTag("Player"))
             {
                 RaycastHit hit;
                 if (Physics.Raycast(agentEyes.position, (player.transform.position - agentEyes.position), out hit))
                 {
                     if (player.CompareTag("Player"))
                     {
-                        Target = player.transform;
-                        StartCoroutine(HandlePlayerAttack(player));
+                        Attack(player);
                         StartCoroutine(nameof(GracePeriod));
-                    }
-                    else if (hit.collider.CompareTag("StaticDoor"))
-                    {
-                        StaticDoorAttackOpen(player, hit);
                     }
                 }
             }
         }
     }
+    public void Attack(Collider player)
+    {
+        PhotonView view = player.gameObject.GetComponent<PhotonView>();
+        view.TransferOwnership(PhotonNetwork.LocalPlayer);
+        view.transform.position = transform.GetChild(0).transform.GetChild(0).position;
+        Vector3 Pos = new Vector3(transform.position.x, view.transform.position.y, transform.position.z);
+        view.transform.LookAt(Pos, Vector3.up);
+        photonView.RPC(nameof(DonnyRPC.DonnyCatching), RpcTarget.AllViaServer, view.ViewID, photonView.ViewID);
+        isChasing = false;
+        lastKnownPosition = playerCagePos;
+        moveToLastKnown = true;
+        Running = true;
+        StartCoroutine(ReleaseAttack(view));
+    }
+    IEnumerator ReleaseAttack(PhotonView view)
+    {
+        while (Vector3.Distance(transform.position, lastKnownPosition) > 2f)
+        {
+            Debug.Log(Vector3.Distance(transform.position, lastKnownPosition));
+            yield return null;
+        }
+        view.transform.position = playerDropPos;
+        view.TransferOwnership(view.Owner);
+        photonView.RPC(nameof(DonnyRPC.DonnyRelease), RpcTarget.AllViaServer, view.ViewID);
+        agent.speed = agentWalkSpeed;
+        isWalkPointSet = false;
+        moveToLastKnown = false;
+        Running = false;
+        Walking = true;
+    }
     private void CheckForPlayers()
     {
         Debug.Log("CheckForPlayers");
-        Collider[] playersInSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoor);
+        Collider[] playersInSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsPlayer);
 
         foreach (Collider obj in playersInSightRange)
         {
@@ -362,7 +406,7 @@ public class DonnyAI : MonoBehaviourPun
             }
         }
     }
-    private void StaticDoorAttackOpen(Collider player, RaycastHit hit)
+    private void StaticDoorOpen(Collider player, RaycastHit hit)
     {
         Debug.Log("DOORATTACKOPEN");
         PhotonView doorview = player.gameObject.GetComponent<PhotonView>();
@@ -377,35 +421,7 @@ public class DonnyAI : MonoBehaviourPun
         }
         Debug.Log("OPENING DOOR");
     }
-    IEnumerator HandlePlayerAttack(Collider player)
-    {
-        Debug.Log("Attack!");
-        PhotonView view = player.gameObject.GetComponent<PhotonView>();
-        view.TransferOwnership(PhotonNetwork.LocalPlayer);
-        view.transform.position = transform.GetChild(0).transform.position;
-        Vector3 Pos = new Vector3(transform.position.x, view.transform.position.y, transform.position.z);
-        view.transform.LookAt(Pos, Vector3.up);
-        photonView.RPC(nameof(DonnyRPC.DonnyCatching), RpcTarget.All, view.ViewID, photonView.ViewID);
-        yield return new WaitForSeconds(1f);
-        isChasing = false;
-        lastKnownPosition = playerCagePos;
-        moveToLastKnown = true;
-        while (Vector3.Distance(agent.transform.position, lastKnownPosition) > 2f)
-        {
-            agent.speed = agentRunSpeed;
-            yield return null;
-        }
-        view.gameObject.transform.position = playerDropPos;
-        view.transform.SetParent(null);
-        view.TransferOwnership(view.Owner);
-        photonView.RPC(nameof(DonnyRPC.DonnyRelease), RpcTarget.All, view.ViewID);
-        isWalkPointSet = false;
-        moveToLastKnown = false;
-        agent.speed = agentWalkSpeed;
-        Running = false;
-        Walking = true;
-        Debug.Log("Player released!");
-    }
+
     IEnumerator CheckDistanceFromDoor(Vector3 pos, PhotonView doorview, StaticDoorInfo SDI)
     {
         Debug.Log("DistanceFromDoor");

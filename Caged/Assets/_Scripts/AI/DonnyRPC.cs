@@ -1,5 +1,6 @@
 using Photon.Pun;
 using UnityEngine.AI;
+using UnityEngine;
 
 public class DonnyRPC : MonoBehaviourPun
 {
@@ -8,10 +9,13 @@ public class DonnyRPC : MonoBehaviourPun
     {
         PhotonView playerview = PhotonView.Find(playerid);
         PhotonView view = PhotonView.Find(viewid);
-        playerview.gameObject.transform.SetParent(view.transform.GetChild(0).transform);
-        playerview.gameObject.GetComponent<PlayerMovement>().enabled = false;
-        playerview.gameObject.GetComponent<Interactions>().enabled = false;
-        playerview.gameObject.tag = "Grabbed";
+        playerview.transform.SetParent(view.transform.GetChild(0).transform.GetChild(0).transform);
+        playerview.GetComponent<PlayerMovement>().enabled = false;
+        playerview.GetComponent<InventoryManager>().enabled = false;
+        playerview.GetComponent<CharacterController>().enabled = false;
+        playerview.GetComponent<CapsuleCollider>().enabled = false;
+        playerview.GetComponent<Interactions>().enabled = false;
+        playerview.tag = "Grabbed";
         playerview.gameObject.layer = 11;
     }
     [PunRPC]
@@ -19,9 +23,12 @@ public class DonnyRPC : MonoBehaviourPun
     {
         PhotonView playerview = PhotonView.Find(playerid);
         playerview.transform.SetParent(null);
-        playerview.gameObject.GetComponent<PlayerMovement>().enabled = true;
-        playerview.gameObject.GetComponent<Interactions>().enabled = true;
-        playerview.gameObject.tag = "Player";
+        playerview.GetComponent<PlayerMovement>().enabled = true;
+        playerview.GetComponent<InventoryManager>().enabled = true;
+        playerview.GetComponent<CharacterController>().enabled = true;
+        playerview.GetComponent<CapsuleCollider>().enabled = true;
+        playerview.GetComponent<Interactions>().enabled = true;
+        playerview.tag = "Player";
         playerview.gameObject.layer = 8;
     }
 
