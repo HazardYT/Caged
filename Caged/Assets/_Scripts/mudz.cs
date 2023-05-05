@@ -299,10 +299,5 @@ namespace mudz
 
             return n;
         }
-        public static Color RandColor(Color color1, Color color2){
-            int choice = Random.Range(1, 2);
-            if(choice == 1){return color1;}
-            else{return color2;}
-        }
     }
 }
