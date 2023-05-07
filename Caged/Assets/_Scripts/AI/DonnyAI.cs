@@ -1,62 +1,64 @@
 using UnityEngine;
 using Photon.Pun;
 using System.Collections;
-using UnityEngine.AI;
 using System.Collections.Generic;
+using UnityEngine.AI;
 
 public class DonnyAI : MonoBehaviourPun
 {
-    public Dictionary<int, bool> doorStates = new Dictionary<int, bool>();
-    [Header("Bool Info")]
-    [SerializeField] private bool isChasing = false;
-    [SerializeField] private bool isWalkPointSet;
-    [SerializeField] private bool moveToLastKnown = false;
-    [SerializeField] private bool foundDoor = false;
-    public bool isListening = true;
-    public bool _running;
-    public bool _walking;
-    [Header("Info")]
-    [SerializeField] private Vector3 lastKnownPosition;
-    [SerializeField] private Transform Target = null;
-    [SerializeField] private Vector3 walkPoint;
+    public Dictionary<int, bool> DoorStates = new Dictionary<int, bool>();
+
+    [Header("LayerMasks")]
+    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private LayerMask whatIsPlayer;
+    [SerializeField] private LayerMask whatIsDoors;
+    [SerializeField] private LayerMask allMask;
     [Header("References")]
     [SerializeField] private NavMeshAgent agent;
+
     [SerializeField] private Animator anim;
     [SerializeField] private Transform agentEyes;
     [SerializeField] private DonnyDoorOpener doorOpener;
     [SerializeField] private ProceduralAnimation proceduralAnim;
-    [Header("LayerMasks")]
-    [SerializeField] private LayerMask whatIsGround;
-    [SerializeField] private LayerMask whatIsPlayer;
-    [SerializeField] private LayerMask whatIsDoor;
     [Header("Settings")]
-    public float agentWalkSpeed;
-    public float agentRunSpeed;
-    [SerializeField] private float maxPredictionFactor = 1.5f;
-    [SerializeField] private float chanceOfSearch;
-    [SerializeField] private float hearingDistance;
-    [SerializeField] private float walkPointRange;
     [SerializeField] private float attackRange;
     [SerializeField] private float sightRange;
     [SerializeField] private float maxRange;
-    [SerializeField] private float hearingVolume;
-    [SerializeField] private int maxWalkPointAttempts = 3;
-    [SerializeField] private float GracePeriodTime = 30;
-    private float stuckTimer = 0;
-    private float stuckThreshold = 3f; // Adjust this value as needed
-    public Vector3 jailMinBounds;
-    public Vector3 jailMaxBounds;
-    //other variables
-    private bool isGrace;
+    [SerializeField] private float gracePeriodLength;
+    [SerializeField] private float predictionAmount;
+    [SerializeField] private float chanceOfSearch;
     private float timeSinceLastHeard = 0f;
-    private float hearingCooldown = 0.5f;
+    private float hearingCooldown = 0.2f;
+    public bool isListening = true;
+    public bool _running;
+    public bool _walking;
+    public float agentWalkSpeed;
+    public float agentRunSpeed;
+
+    [Header("Info")]
+    private float stuckTimer = 0f;
+    private Vector3 previousPosition;
+
+    private Vector3 animationPos;
+    public bool isGraceMode = false;
+    [SerializeField] private Transform Target = null;
+    [SerializeField] private bool hasFoundDoor;
+    [SerializeField] private bool isChasing;
+    [SerializeField] private bool isMovingToPos;
+    [SerializeField] private Vector3 MovePos;
+    [SerializeField] private Vector3 walkPoint;
+    [SerializeField] private float walkPointRange;
+    [SerializeField] private bool isWalkPointSet;
+    [SerializeField] private int maxWalkPointAttempts = 3;
+    [SerializeField] private float hearingDistance;
+    [SerializeField] private Vector3 jailMinBounds;
+    [SerializeField] private Vector3 jailMaxBounds;
     [SerializeField] private Vector3 playerCagePos;
     [SerializeField] private Vector3 playerDropPos;
 
-
     private void Start()
     {
-        DifficultySet();
+        SetDifficulty();
         if (!photonView.IsMine || PhotonNetwork.IsMasterClient)
         {
             gameObject.GetComponent<AudioListener>().enabled = false;
@@ -65,402 +67,237 @@ public class DonnyAI : MonoBehaviourPun
     }
     private void Update()
     {
-        if (!isGrace)
-        {
-            Movement();
-            Animation();
-            CheckAndUpdateDoorStates();
-            if (isListening && !moveToLastKnown)
-            {
-                timeSinceLastHeard += Time.deltaTime;
-                if (timeSinceLastHeard >= hearingCooldown)
-                {
-                    Listening();
-                    timeSinceLastHeard = 0f;
-                }
-            }
-        }
-        else { Movement(); }
-        if (moveToLastKnown && !isChasing)
-        {
-            GoToLastKnownPosition();
-        }
-
-    }
-    private void Movement()
-    {
-        if (agent.velocity == Vector3.zero)
-        {
-            if (!moveToLastKnown && !foundDoor)
-            {
-                SearchWalkPoint();
-            }
-        }
-        if (!isChasing)
-        {
-            if (!moveToLastKnown)
-            {
-                agent.speed = agentWalkSpeed;
-                CheckForPlayersInChaseRange();
-                CheckForHidingSpots();
-                Patrolling();
-            }
-            else
-            {
-                GoToLastKnownPosition();
-                foundDoor = false;
-            }
-        }
-        if (isChasing)
-        {
-            agent.speed = agentRunSpeed;
-            foundDoor = false;
-            isListening = false;
-            ChasePlayer();
-            CheckAttackRange();
-            OpenCloseHidingSpots();
-        }
-        CheckForPlayers();
-    }
-    IEnumerator GracePeriod()
-    {
-        Debug.Log("grace");
-        yield return new WaitForSeconds(0.5f);
-        isGrace = true;
-        yield return new WaitForSeconds(GracePeriodTime);
-        isGrace = false;
-    }
-    private void CheckAndUpdateDoorStates()
-    {
-        Collider[] doorsInSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoor);
-
-        foreach (Collider doorCollider in doorsInSightRange)
-        {
-            if (doorCollider.CompareTag("StaticDoor") || doorCollider.CompareTag("Door"))
-            {
-                GameObject doorObj = doorCollider.gameObject;
-                PhotonView doorView = doorObj.GetComponent<PhotonView>();
-                int doorViewID = doorView.ViewID;
-                bool isStaticDoor = doorObj.CompareTag("StaticDoor");
-
-                RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, (doorObj.transform.position - agentEyes.position), out hit))
-                {
-                    if (hit.collider.CompareTag("Door") || hit.collider.CompareTag("StaticDoor"))
-                    {
-                        Debug.Log("PEE Door or Static DOor IN Line of sight");
-                        bool currentIsOpen = isStaticDoor ? doorObj.GetComponent<StaticDoorInfo>().isOpen : doorObj.GetComponent<DoorInfo>().isOpen;
-                        if (doorStates.ContainsKey(doorViewID))
-                        {
-                            if (doorStates[doorViewID] != currentIsOpen)
-                            {
-                                walkPoint = hit.point;
-                                isWalkPointSet = true;
-                                Debug.Log("PEE Updating and moving state =!!");
-                                doorStates[doorViewID] = currentIsOpen;
-                                if (doorOpener.StaticDoorCooldown)
-                                {
-                                    foundDoor = true;
-                                    if (doorView.Owner != PhotonNetwork.LocalPlayer) { doorView.RequestOwnership(); }
-                                    StartCoroutine(CheckDistanceFromDoor(hit.point, doorView, doorView.gameObject.GetComponent<StaticDoorInfo>()));
-                                }
-                            }
-                        }
-                        else { doorStates.Add(doorObj.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
-                    }
-                }
-            }
-        }
-    }
-    private void Animation()
-    {
-        if (agent.velocity == Vector3.zero)
+        if (isGraceMode)
         {
             isChasing = false;
-            Walking = false;
-            Running = false;
+            isMovingToPos = false;
+            isWalkPointSet = false;
+            if (isMovingToPos) { GoToPosition(); }
+            else { Patrolling(); }
+            return;
         }
-        if (agent.speed == agentRunSpeed)
-        {
-            Running = true;
-            Walking = false;
-            proceduralAnim.smoothness = 3;
-            proceduralAnim.stepHeight = 0.5f;
-            proceduralAnim.stepLength = 2.35f;
-            proceduralAnim.angularSpeed = 10;
-            proceduralAnim.bounceAmplitude = 0.2f;
-        }
-        if (agent.speed == agentWalkSpeed)
-        {
-            Walking = true;
-            Running = false;
-            proceduralAnim.smoothness = 3;
-            proceduralAnim.stepHeight = 0.5f;
-            proceduralAnim.stepLength = 2.25f;
-            proceduralAnim.angularSpeed = 7;
-            proceduralAnim.bounceAmplitude = 0.2f;
-        }
+        AttackRange();
+        SightRange();
+        DoorMemory();
+        MaxRange();
+        Animation();
+        if (isListening && !isMovingToPos && !isChasing) { Listening(); }
+        if (isChasing && !isMovingToPos) { Chase(); agent.speed = agentRunSpeed; }
+        if (!isChasing && isMovingToPos) { GoToPosition(); agent.speed = agentRunSpeed; }
+        if (!isChasing && !isMovingToPos) { Patrolling(); SightRangeDoors(); agent.speed = agentWalkSpeed; }
     }
-    public void OpenCloseHidingSpots()
+    public void RageMode(){
+        
+    }
+    public void AttackRange()
     {
-        Collider[] playersInAttackRange = Physics.OverlapSphere(transform.position, attackRange, whatIsDoor);
-        foreach (Collider door in playersInAttackRange)
+        Collider[] InAttackRange = Physics.OverlapSphere(transform.position, attackRange, allMask);
+        foreach (Collider obj in InAttackRange)
         {
-            if (door.CompareTag("StaticDoor"))
+            RaycastHit hit;
+            if (Physics.Raycast(agentEyes.position, (obj.transform.position - agentEyes.position), out hit))
             {
-                RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, (door.transform.position - agentEyes.position), out hit))
+                if (isChasing && hit.collider.CompareTag("StaticDoor"))
                 {
-                    if (hit.collider.CompareTag("StaticDoor"))
-                    {
-                        StaticDoorOpen(door, hit);
-                    }
+                    StaticDoorOpen(obj, hit);
+                }
+                if (obj.CompareTag("Player"))
+                {
+                    StartCoroutine(Attack(obj));
                 }
             }
         }
     }
-    private void CheckAttackRange()
+    public void SightRange()
     {
-        Debug.Log("CheckForPlayersInAttackRange");
-        Collider[] playersInAttackRange = Physics.OverlapSphere(transform.position, attackRange, whatIsPlayer);
-        foreach (Collider player in playersInAttackRange)
-        {
-            if (player.CompareTag("Player"))
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, (player.transform.position - agentEyes.position), out hit))
-                {
-                    if (player.CompareTag("Player"))
-                    {
-                        Attack(player);
-                        StartCoroutine(nameof(GracePeriod));
-                    }
-                }
-            }
-        }
-    }
-    public void Attack(Collider player)
-    {
-        PhotonView view = player.gameObject.GetComponent<PhotonView>();
-        view.TransferOwnership(PhotonNetwork.LocalPlayer);
-        view.transform.position = transform.GetChild(0).transform.GetChild(0).position;
-        Vector3 Pos = new Vector3(transform.position.x, view.transform.position.y, transform.position.z);
-        view.transform.LookAt(Pos, Vector3.up);
-        photonView.RPC(nameof(DonnyRPC.DonnyCatching), RpcTarget.AllViaServer, view.ViewID, photonView.ViewID);
-        isChasing = false;
-        lastKnownPosition = playerCagePos;
-        moveToLastKnown = true;
-        Running = true;
-        StartCoroutine(ReleaseAttack(view));
-    }
-    IEnumerator ReleaseAttack(PhotonView view)
-    {
-        while (Vector3.Distance(transform.position, lastKnownPosition) > 2f)
-        {
-            Debug.Log(Vector3.Distance(transform.position, lastKnownPosition));
-            yield return null;
-        }
-        view.transform.position = playerDropPos;
-        view.TransferOwnership(view.Owner);
-        photonView.RPC(nameof(DonnyRPC.DonnyRelease), RpcTarget.AllViaServer, view.ViewID);
-        agent.speed = agentWalkSpeed;
-        isWalkPointSet = false;
-        moveToLastKnown = false;
-        Running = false;
-        Walking = true;
-    }
-    private void CheckForPlayers()
-    {
-        Debug.Log("CheckForPlayers");
-        Collider[] playersInSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsPlayer);
-
-        foreach (Collider obj in playersInSightRange)
+        Debug.Log("SightRange");
+        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsPlayer);
+        bool playerInSight = false;
+        foreach (Collider obj in InSightRange)
         {
             if (obj.CompareTag("Player"))
             {
                 RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, (obj.transform.position - agentEyes.position), out hit))
+                if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit))
                 {
-                    if (hit.collider.CompareTag("Player"))
+                    if (hit.collider.CompareTag("Player") && !isMovingToPos)
                     {
+                        Debug.DrawRay(agentEyes.position, obj.transform.position - agentEyes.position, Color.red);
+                        Debug.Log("chasing");
                         Target = obj.transform;
-                        Debug.DrawLine(agentEyes.position, Target.position, Color.green);
                         isChasing = true;
-                        moveToLastKnown = false;
-                        Debug.Log("Chasing from checkplayers");
+                        playerInSight = true;
                     }
-                    else if (!hit.collider.CompareTag("Player"))
+                    if (!hit.collider.CompareTag("Player") && !playerInSight && isChasing)
                     {
+                        Debug.Log("GoToPos after chase");
                         isChasing = false;
-                    }
-                    else if (!moveToLastKnown && !isWalkPointSet && !isChasing)
-                    {
-                        lastKnownPosition = Target.position;
-                        moveToLastKnown = true;
-                        Debug.Log("Chasing from checkplayers return to last known");
-                        return;
+                        MovePos = Target.position;
+                        isMovingToPos = true;
+                        Target = null;
                     }
                 }
-
             }
         }
     }
-    private void CheckForHidingSpots()
+    public void SightRangeDoors()
     {
-        Debug.Log("CheckForHidingSpots");
-        Collider[] playersInSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoor);
-        foreach (Collider obj in playersInSightRange)
+        Debug.Log("SightRangeDoors");
+        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoors);
+        foreach (Collider obj in InSightRange)
         {
-            if (obj.CompareTag("StaticDoor"))
+            RaycastHit hit;
+            if (Physics.Raycast(agentEyes.position, obj.transform.position, out hit))
             {
-                RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, (obj.transform.position - agentEyes.position), out hit))
+                // Random Open of Door
+                if (hit.collider.CompareTag("StaticDoor"))
                 {
-                    if (hit.collider.CompareTag("StaticDoor"))
+                    Debug.Log("randomopen check");
+                    PhotonView doorview = obj.gameObject.GetComponent<PhotonView>();
+                    StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
+                    if (SDI.isOpen == false)
                     {
-                        PhotonView doorview = obj.gameObject.GetComponent<PhotonView>();
-                        StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
-                        if (SDI.isOpen == false)
+                        Debug.DrawRay(agentEyes.position, obj.transform.position, Color.grey);
+                        if (Random.value < chanceOfSearch / 100 && !hasFoundDoor)
                         {
-                            Debug.DrawLine(agentEyes.position, hit.point, Color.grey);
-                            if (Random.value < chanceOfSearch / 100 && !foundDoor)
+                            hasFoundDoor = true;
+                            Vector3 center = hit.collider.bounds.center;
+                            RaycastHit floorHit;
+                            if (Physics.Raycast(center, Vector3.down, out floorHit))
                             {
-                                Debug.Log("Value hit");
-                                foundDoor = true;
+                                NavMeshHit navMeshHit;
+                                if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.0f, NavMesh.AllAreas))
+                                {
+                                    if (doorview.Owner != PhotonNetwork.LocalPlayer)
+                                    {
+                                        doorview.RequestOwnership();
+                                    }
+                                    walkPoint = navMeshHit.position;
+                                    isWalkPointSet = true;
+                                    Debug.DrawLine(floorHit.point, navMeshHit.position, Color.cyan);
+                                    StartCoroutine(CheckDistanceFromDoor(navMeshHit.position, doorview, SDI));
+                                }
+                            }
+                        }
+                        // Check for Player with Light on Behind Closed Door
+                        if (obj.CompareTag("Player") && Vector3.Distance(obj.transform.position, obj.transform.position) <= 1f)
+                        {
+                            bool flashlightActive = CanSeePlayerLight(obj.transform);
+                            if (flashlightActive)
+                            {
+                                hasFoundDoor = true;
                                 Vector3 center = hit.collider.bounds.center;
                                 RaycastHit floorHit;
                                 if (Physics.Raycast(center, Vector3.down, out floorHit))
                                 {
                                     NavMeshHit navMeshHit;
-                                    if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.0f, NavMesh.AllAreas))
+                                    if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.5f, NavMesh.AllAreas))
                                     {
-                                        if (doorview.Owner != PhotonNetwork.LocalPlayer)
-                                        {
-                                            doorview.RequestOwnership();
-                                        }
-                                        walkPoint = navMeshHit.position;
-                                        isWalkPointSet = true;
+                                        if (doorview.Owner != PhotonNetwork.LocalPlayer) { doorview.RequestOwnership(); }
+                                        Debug.Log("FOUND LIGHT IN CLOSET");
+                                        MovePos = navMeshHit.position;
+                                        isMovingToPos = true;
                                         Debug.DrawLine(floorHit.point, navMeshHit.position, Color.cyan);
                                         StartCoroutine(CheckDistanceFromDoor(navMeshHit.position, doorview, SDI));
                                         return;
                                     }
                                 }
                             }
-                            foreach (Collider player in playersInSightRange)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    public void DoorMemory()
+    {
+        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoors);
+        foreach (Collider obj in InSightRange)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(agentEyes.position, obj.transform.position, out hit))
+            {
+                // Door Memory
+                if (hit.collider.CompareTag("StaticDoor") || hit.collider.CompareTag("Door"))
+                {
+                    Debug.Log("door memory");
+                    GameObject doorObj = obj.transform.root.gameObject;
+                    PhotonView doorView = doorObj.GetComponent<PhotonView>();
+                    bool currentIsOpen = hit.collider.CompareTag("StaticDoor") ? doorObj.GetComponent<StaticDoorInfo>().isOpen : doorObj.GetComponent<DoorInfo>().isOpen;
+                    if (DoorStates.ContainsKey(doorView.ViewID))
+                    {
+                        if (DoorStates[doorView.ViewID] != currentIsOpen)
+                        {
+                            walkPoint = hit.point;
+                            isWalkPointSet = true;
+                            DoorStates[doorView.ViewID] = currentIsOpen;
+                            if (doorOpener.StaticDoorCooldown)
                             {
-                                if (player.CompareTag("Player") && Vector3.Distance(player.transform.position, obj.transform.position) <= 1.5f)
-                                {
-                                    bool flashlightActive = CanSeePlayerLight(player.transform);
-                                    if (flashlightActive)
-                                    {
-                                        foundDoor = true;
-                                        Vector3 center = hit.collider.bounds.center;
-                                        RaycastHit floorHit;
-                                        if (Physics.Raycast(center, Vector3.down, out floorHit))
-                                        {
-                                            NavMeshHit navMeshHit;
-                                            if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.5f, NavMesh.AllAreas))
-                                            {
-                                                if (doorview.Owner != PhotonNetwork.LocalPlayer) { doorview.RequestOwnership(); }
-                                                Debug.Log("FOUND LIGHT IN CLOSET");
-                                                lastKnownPosition = navMeshHit.position;
-                                                moveToLastKnown = true;
-                                                Debug.DrawLine(floorHit.point, navMeshHit.position, Color.cyan);
-                                                StartCoroutine(CheckDistanceFromDoor(navMeshHit.position, doorview, SDI));
-                                                return;
-
-                                            }
-                                        }
-                                    }
-                                }
+                                hasFoundDoor = true;
+                                if (doorView.Owner != PhotonNetwork.LocalPlayer) { doorView.RequestOwnership(); }
+                                StartCoroutine(CheckDistanceFromDoor(hit.point, doorView, doorView.gameObject.GetComponent<StaticDoorInfo>()));
                             }
                         }
                     }
+                    else { DoorStates.Add(doorObj.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
                 }
             }
         }
     }
-    private void CheckForPlayersInChaseRange()
+    
+    public void MaxRange()
     {
-        Debug.Log("ChecKForChaseRange");
         Collider[] playersInChaseRange = Physics.OverlapSphere(transform.position, maxRange, whatIsPlayer);
         foreach (Collider player in playersInChaseRange)
         {
-            if (player.CompareTag("Player"))
+            RaycastHit hit;
+            if (Physics.Raycast(agentEyes.position, player.transform.position - agentEyes.position, out hit))
             {
-                RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, (player.transform.position - agentEyes.position), out hit))
+                if (hit.transform.CompareTag("Player"))
                 {
-                    if (hit.transform.CompareTag("Player"))
+                    Debug.DrawRay(transform.position, player.transform.position, Color.white);
+                    bool flashlightActive = CanSeePlayerLight(player.transform);
+                    if (flashlightActive)
                     {
-                        bool flashlightActive = CanSeePlayerLight(player.transform);
-                        if (flashlightActive)
-                        {
-                            Debug.Log("FoundInChaseRange");
-                            Target = player.transform;
-                            isChasing = true;
-                            return;
-                        }
+                        isMovingToPos = false;
+                        Target = player.transform;
+                        isChasing = true;
+                        return;
                     }
+                }
+                if (!hit.collider.CompareTag("Player") && !isMovingToPos && !CanSeePlayerLight(player.transform) && isChasing)
+                {
+                    Debug.Log("GoToPos after chase");
+                    isChasing = false;
+                    MovePos = Target.position;
+                    isMovingToPos = true;
+                    Target = null;
                 }
             }
         }
     }
-    private void StaticDoorOpen(Collider player, RaycastHit hit)
+
+    public void Chase()
     {
-        Debug.Log("DOORATTACKOPEN");
-        PhotonView doorview = player.gameObject.GetComponent<PhotonView>();
-        StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
-        if (doorOpener.StaticDoorCooldown)
+        Debug.Log("Chasing");
+        float distanceToTarget = Vector3.Distance(transform.position, Target.position);
+
+        if (distanceToTarget <= maxRange)
         {
-            if (doorview.Owner != PhotonNetwork.LocalPlayer)
-            {
-                doorview.RequestOwnership();
-            }
-            StartCoroutine(doorOpener.StaticDoor(SDI, doorview.ViewID));
+            Debug.DrawLine(transform.position, Target.position, Color.red);
+            CharacterController playerController = Target.GetComponent<CharacterController>();
+            float predictionFactor = Mathf.Lerp(0.05f, predictionAmount, distanceToTarget / maxRange);
+            Vector3 predictedPosition = Target.position + (playerController.velocity * predictionFactor);
+            agent.SetDestination(predictedPosition);
         }
-        Debug.Log("OPENING DOOR");
-    }
-
-    IEnumerator CheckDistanceFromDoor(Vector3 pos, PhotonView doorview, StaticDoorInfo SDI)
-    {
-        Debug.Log("DistanceFromDoor");
-
-        while (Vector3.Distance(transform.position, pos) >= 2f)
-        {
-            Debug.Log("Distance: " + Vector3.Distance(transform.position, pos));
-            if (isChasing || moveToLastKnown == true)
-            {
-                yield break;
-            }
-            yield return null;
-        }
-        // Wait for 0.5 seconds before opening the door
-        yield return new WaitForSeconds(0.5f);
-        agent.velocity = Vector3.zero;
-        agent.speed = agentWalkSpeed;
-        Walking = false;
-        Debug.DrawLine(agentEyes.position, walkPoint, Color.green);
-        if (!doorOpener.StaticDoorCooldown)
-        {
-            StartCoroutine(doorOpener.StaticDoor(SDI, doorview.ViewID));
-        }
-
-        // Wait for 0.2 seconds after opening the door
-        yield return new WaitForSeconds(1f);
-
-        foundDoor = false;
-        isWalkPointSet = false;
-        Debug.Log("RESETTING");
     }
     public void Patrolling()
     {
-        Debug.Log("Patrolling");
+        if (!isWalkPointSet) SearchWalkPoint();
+
         agent.speed = agentWalkSpeed;
-        if (moveToLastKnown) return;
 
-        if (!isWalkPointSet && !foundDoor) SearchWalkPoint();
-
+        Debug.Log("Patrolling");
         if (isWalkPointSet)
         {
             if (agent.pathStatus == NavMeshPathStatus.PathComplete)
@@ -468,22 +305,16 @@ public class DonnyAI : MonoBehaviourPun
                 agent.SetDestination(walkPoint);
                 Debug.DrawLine(agentEyes.position, walkPoint, Color.yellow);
             }
-            else
-            {
-                isWalkPointSet = false;
-            }
+            else { isWalkPointSet = false; }
         }
-
-        Vector3 distanceToWalkPoint = transform.position - walkPoint;
-
-        if (distanceToWalkPoint.magnitude < 2f)
+        if (Vector3.Distance(transform.position, walkPoint) < 2f)
         {
             isWalkPointSet = false;
         }
     }
     public void SearchWalkPoint()
     {
-        if (moveToLastKnown) return;
+        if (isMovingToPos) return;
 
         bool validWalkPoint = false;
         int attempts = 0;
@@ -491,21 +322,17 @@ public class DonnyAI : MonoBehaviourPun
         do
         {
             attempts++;
-            Debug.Log("finding walkpoint Attempt: " + attempts);
 
-            // Calculate random angle within 45-degree angle from the front direction of the agent's camera
             float randomAngle = Random.Range(-Mathf.PI / 4, Mathf.PI / 4);
             float x = walkPointRange * Mathf.Cos(randomAngle);
             float z = walkPointRange * Mathf.Sin(randomAngle);
 
-            // Use the agent's camera forward direction instead of the agent's forward direction
             Vector3 rotatedDirection = Quaternion.Euler(0, doorOpener.DonnyCam.transform.eulerAngles.y, 0) * new Vector3(x, 0, z);
             Vector3 walkPointDirection = new Vector3(transform.position.x + rotatedDirection.x, transform.position.y, transform.position.z + rotatedDirection.z);
             NavMesh.SamplePosition(walkPointDirection, out NavMeshHit hit, walkPointRange, NavMesh.AllAreas);
 
             agent.SetDestination(hit.position);
 
-            // Check if the path is complete without creating a new NavMeshPath
             if (agent.pathStatus == NavMeshPathStatus.PathComplete)
             {
                 validWalkPoint = true;
@@ -533,73 +360,31 @@ public class DonnyAI : MonoBehaviourPun
             }
         } while (!validWalkPoint && attempts < maxWalkPointAttempts);
     }
-    private void GoToLastKnownPosition()
+    private void GoToPosition()
     {
         agent.speed = agentRunSpeed;
-        Debug.DrawLine(agentEyes.position, lastKnownPosition, Color.blue);
+        Debug.DrawLine(agentEyes.position, MovePos, Color.blue);
 
         if (agent.pathStatus == NavMeshPathStatus.PathComplete)
         {
-            Debug.Log("MovingTOLastKnown");
-            agent.SetDestination(lastKnownPosition);
+            agent.SetDestination(MovePos);
         }
         else
         {
             Debug.Log("PathNotComplete");
-            moveToLastKnown = false;
+            isMovingToPos = false;
             SearchWalkPoint();
         }
-
-        float distanceToLastKnown = Vector3.Distance(transform.position, lastKnownPosition);
-
+        float distanceToLastKnown = Vector3.Distance(transform.position, MovePos);
         if (distanceToLastKnown < 2f)
         {
-            Debug.Log("Completed--MoveToLastKnown");
+            Debug.Log("Completed--isMovingToPos");
             agent.speed = agentWalkSpeed;
-            moveToLastKnown = false;
+            isMovingToPos = false;
             SearchWalkPoint();
         }
-        else if (agent.velocity == Vector3.zero)
-        {
-            // Add a timer to check if the agent is stuck
-            stuckTimer += Time.deltaTime;
-            if (stuckTimer > stuckThreshold)
-            {
-                // If the agent is stuck, force it to recalculate its path
-                moveToLastKnown = false;
-                Debug.Log("CancellingMoveToLastVECTORZERO");
-                SearchWalkPoint();
-                stuckTimer = 0;
-            }
-        }
-        else
-        {
-            // Reset the stuck timer if the agent is moving
-            stuckTimer = 0;
-        }
-    }
-    private void ChasePlayer()
-    {
-        Debug.Log("ChasePlayer");
 
-        float distanceToTarget = Vector3.Distance(transform.position, Target.position);
-
-        if (distanceToTarget <= maxRange)
-        {
-            isWalkPointSet = false;
-            Debug.DrawLine(transform.position, Target.position, Color.red);
-            // Get the player's CharacterController component
-            CharacterController playerController = Target.GetComponent<CharacterController>();
-
-            // Calculate the prediction factor based on the distance to the target
-            float predictionFactor = Mathf.Lerp(0.05f, maxPredictionFactor, distanceToTarget / maxRange);
-
-            // Calculate the predicted position based on the player's current position, velocity, and the prediction factor
-            Vector3 predictedPosition = Target.position + (playerController.velocity * predictionFactor);
-
-            // Set the agent's destination to the predicted position
-            agent.SetDestination(predictedPosition);
-        }
+        
     }
     private void Listening()
     {
@@ -624,8 +409,8 @@ public class DonnyAI : MonoBehaviourPun
                             if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 5f, NavMesh.AllAreas))
                             {
                                 Debug.Log("FoundSound");
-                                lastKnownPosition = hit.position;
-                                moveToLastKnown = true;
+                                MovePos = hit.position;
+                                isMovingToPos = true;
                             }
                         }
                     }
@@ -660,7 +445,108 @@ public class DonnyAI : MonoBehaviourPun
         }
         return false;
     }
-    private void DifficultySet()
+    private void StaticDoorOpen(Collider player, RaycastHit hit)
+    {
+        PhotonView doorview = player.gameObject.GetComponent<PhotonView>();
+        StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
+        if (doorOpener.StaticDoorCooldown)
+        {
+            if (doorview.Owner != PhotonNetwork.LocalPlayer)
+            {
+                doorview.RequestOwnership();
+            }
+            StartCoroutine(doorOpener.StaticDoor(SDI, doorview.ViewID));
+        }
+    }
+
+    IEnumerator CheckDistanceFromDoor(Vector3 pos, PhotonView doorview, StaticDoorInfo SDI)
+    {
+        while (Vector3.Distance(transform.position, pos) >= 2f)
+        {
+            if (isChasing || isMovingToPos == true)
+            {
+                yield break;
+            }
+            yield return null;
+        }
+        agent.velocity = Vector3.zero;
+        Debug.DrawLine(agentEyes.position, walkPoint, Color.cyan);
+        if (!doorOpener.StaticDoorCooldown) { StartCoroutine(doorOpener.StaticDoor(SDI, doorview.ViewID)); }
+        yield return new WaitForSeconds(1f);
+        isMovingToPos = false;
+        hasFoundDoor = false;
+        isWalkPointSet = false;
+    }
+    public IEnumerator Attack(Collider player)
+    {
+        isChasing = false;
+        PhotonView view = player.gameObject.GetComponent<PhotonView>();
+        AttackInitial(player);
+        while (Vector3.Distance(transform.position, MovePos) > 2f)
+        {
+            yield return null;
+        }
+        AttackRelease(view);
+    }
+    public void AttackInitial(Collider player)
+    {
+        PhotonView view = player.gameObject.GetComponent<PhotonView>();
+        view.TransferOwnership(PhotonNetwork.LocalPlayer);
+        photonView.RPC(nameof(DonnyRPC.DonnyCatching), RpcTarget.AllViaServer, view.ViewID, photonView.ViewID);
+        view.transform.position = transform.GetChild(0).transform.GetChild(0).position;
+        Vector3 Pos = new Vector3(transform.position.x, view.transform.position.y, transform.position.z);
+        view.transform.LookAt(Pos, Vector3.up);
+        MovePos = playerCagePos;
+        isMovingToPos = true;
+        StartCoroutine(nameof(GracePeriod));
+    }
+    public void AttackRelease(PhotonView view)
+    {
+        view.transform.position = playerDropPos;
+        view.TransferOwnership(view.Owner);
+        photonView.RPC(nameof(DonnyRPC.DonnyRelease), RpcTarget.AllViaServer, view.ViewID);
+        agent.speed = agentWalkSpeed;
+        isWalkPointSet = false;
+        isMovingToPos = false;
+        Running = false;
+    }
+    private IEnumerator GracePeriod()
+    {
+        isGraceMode = true;
+        yield return new WaitForSeconds(gracePeriodLength);
+        isGraceMode = false;
+    }
+    private void Animation()
+    {
+        if (Vector3.Distance(animationPos, agent.transform.position) <= 0.5f)
+        {
+            Walking = false;
+            Running = false;
+        }
+        if (agent.speed == agentRunSpeed)
+        {
+            Running = true;
+            Walking = false;
+            proceduralAnim.smoothness = 3;
+            proceduralAnim.stepHeight = 0.5f;
+            proceduralAnim.stepLength = 2.35f;
+            proceduralAnim.angularSpeed = 10;
+            proceduralAnim.bounceAmplitude = 0.2f;
+        }
+        if (agent.speed == agentWalkSpeed)
+        {
+            Walking = true;
+            Running = false;
+            proceduralAnim.smoothness = 3;
+            proceduralAnim.stepHeight = 0.5f;
+            proceduralAnim.stepLength = 2.25f;
+            proceduralAnim.angularSpeed = 7;
+            proceduralAnim.bounceAmplitude = 0.2f;
+        }
+
+        animationPos = agent.transform.position;
+    }
+    private void SetDifficulty()
     {
         switch (LobbyManager.Difficulty)
         {
@@ -670,7 +556,7 @@ public class DonnyAI : MonoBehaviourPun
                 sightRange = 8;
                 maxRange = 18;
                 hearingDistance = 25;
-                GracePeriodTime = 60;
+                gracePeriodLength = 60;
                 break;
             case 1:
                 agentWalkSpeed = 3f;
@@ -678,7 +564,7 @@ public class DonnyAI : MonoBehaviourPun
                 sightRange = 10;
                 maxRange = 22;
                 hearingDistance = 30;
-                GracePeriodTime = 45;
+                gracePeriodLength = 45;
                 break;
             case 2:
                 agentWalkSpeed = 4;
@@ -686,7 +572,7 @@ public class DonnyAI : MonoBehaviourPun
                 sightRange = 12;
                 maxRange = 25;
                 hearingDistance = 35;
-                GracePeriodTime = 30;
+                gracePeriodLength = 30;
                 break;
             case 3:
                 agentWalkSpeed = 4;
@@ -694,7 +580,7 @@ public class DonnyAI : MonoBehaviourPun
                 sightRange = 15;
                 maxRange = 30;
                 hearingDistance = 50;
-                GracePeriodTime = 15;
+                gracePeriodLength = 15;
                 break;
         }
     }
@@ -728,3 +614,4 @@ public class DonnyAI : MonoBehaviourPun
         }
     }
 }
+ 
