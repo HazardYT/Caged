@@ -30,6 +30,8 @@ public class DonnyAI : MonoBehaviourPun
     private float timeSinceLastHeard = 0f;
     private float hearingCooldown = 0.2f;
     public bool isListening = true;
+    public bool isRaged;
+    public float rageChance;
     public bool _running;
     public bool _walking;
     public float agentWalkSpeed;
@@ -81,13 +83,22 @@ public class DonnyAI : MonoBehaviourPun
         DoorMemory();
         MaxRange();
         Animation();
+        RageMode();
         if (isListening && !isMovingToPos && !isChasing) { Listening(); }
         if (isChasing && !isMovingToPos) { Chase(); agent.speed = agentRunSpeed; }
         if (!isChasing && isMovingToPos) { GoToPosition(); agent.speed = agentRunSpeed; }
         if (!isChasing && !isMovingToPos) { Patrolling(); SightRangeDoors(); agent.speed = agentWalkSpeed; }
     }
-    public void RageMode(){
-        
+    public void RageMode()
+    {
+        if (Random.value < rageChance){
+            isRaged = true;
+            float i = Random.Range(10f, 30f);
+            Invoke(nameof(RageTimerReset), i);
+        }
+    }
+    public void RageTimerReset(){
+        isRaged = false;
     }
     public void AttackRange()
     {
@@ -120,11 +131,12 @@ public class DonnyAI : MonoBehaviourPun
                 RaycastHit hit;
                 if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit))
                 {
-                    if (hit.collider.CompareTag("Player") && !isMovingToPos)
+                    if (hit.collider.CompareTag("Player"))
                     {
                         Debug.DrawRay(agentEyes.position, obj.transform.position - agentEyes.position, Color.red);
                         Debug.Log("chasing");
                         Target = obj.transform;
+                        isMovingToPos = false;
                         isChasing = true;
                         playerInSight = true;
                     }
@@ -143,69 +155,69 @@ public class DonnyAI : MonoBehaviourPun
     public void SightRangeDoors()
     {
         Debug.Log("SightRangeDoors");
-        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoors);
+        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, allMask);
+
         foreach (Collider obj in InSightRange)
         {
             RaycastHit hit;
-            if (Physics.Raycast(agentEyes.position, obj.transform.position, out hit))
+            if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit))
             {
-                // Random Open of Door
                 if (hit.collider.CompareTag("StaticDoor"))
                 {
                     Debug.Log("randomopen check");
                     PhotonView doorview = obj.gameObject.GetComponent<PhotonView>();
                     StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
+
                     if (SDI.isOpen == false)
                     {
                         Debug.DrawRay(agentEyes.position, obj.transform.position, Color.grey);
+
                         if (Random.value < chanceOfSearch / 100 && !hasFoundDoor)
                         {
                             hasFoundDoor = true;
-                            Vector3 center = hit.collider.bounds.center;
-                            RaycastHit floorHit;
-                            if (Physics.Raycast(center, Vector3.down, out floorHit))
-                            {
-                                NavMeshHit navMeshHit;
-                                if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.0f, NavMesh.AllAreas))
-                                {
-                                    if (doorview.Owner != PhotonNetwork.LocalPlayer)
-                                    {
-                                        doorview.RequestOwnership();
-                                    }
-                                    walkPoint = navMeshHit.position;
-                                    isWalkPointSet = true;
-                                    Debug.DrawLine(floorHit.point, navMeshHit.position, Color.cyan);
-                                    StartCoroutine(CheckDistanceFromDoor(navMeshHit.position, doorview, SDI));
-                                }
-                            }
+                            OpenDoor(hit,doorview, SDI);
                         }
-                        // Check for Player with Light on Behind Closed Door
-                        if (obj.CompareTag("Player") && Vector3.Distance(obj.transform.position, obj.transform.position) <= 1f)
+                        else
                         {
-                            bool flashlightActive = CanSeePlayerLight(obj.transform);
-                            if (flashlightActive)
+                            Collider[] nearbyObjects = Physics.OverlapSphere(obj.transform.position, 1f);
+                            foreach (Collider nearbyObj in nearbyObjects)
                             {
-                                hasFoundDoor = true;
-                                Vector3 center = hit.collider.bounds.center;
-                                RaycastHit floorHit;
-                                if (Physics.Raycast(center, Vector3.down, out floorHit))
+                                if (nearbyObj.CompareTag("Player"))
                                 {
-                                    NavMeshHit navMeshHit;
-                                    if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.5f, NavMesh.AllAreas))
+                                    bool flashlightActive = CanSeePlayerLight(nearbyObj.transform);
+                                    if (flashlightActive)
                                     {
-                                        if (doorview.Owner != PhotonNetwork.LocalPlayer) { doorview.RequestOwnership(); }
-                                        Debug.Log("FOUND LIGHT IN CLOSET");
-                                        MovePos = navMeshHit.position;
-                                        isMovingToPos = true;
-                                        Debug.DrawLine(floorHit.point, navMeshHit.position, Color.cyan);
-                                        StartCoroutine(CheckDistanceFromDoor(navMeshHit.position, doorview, SDI));
-                                        return;
+                                        hasFoundDoor = true;
+                                        OpenDoor(hit, doorview, SDI);
+                                        break;
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void OpenDoor(RaycastHit hit, PhotonView doorview, StaticDoorInfo SDI)
+    {
+        Vector3 center = hit.collider.bounds.center;
+        RaycastHit floorHit;
+
+        if (Physics.Raycast(center, Vector3.down, out floorHit))
+        {
+            NavMeshHit navMeshHit;
+            if (NavMesh.SamplePosition(floorHit.point, out navMeshHit, 1.0f, NavMesh.AllAreas))
+            {
+                if (doorview.Owner != PhotonNetwork.LocalPlayer)
+                {
+                    doorview.RequestOwnership();
+                }
+                walkPoint = navMeshHit.position;
+                isWalkPointSet = true;
+                Debug.DrawLine(floorHit.point, navMeshHit.position, Color.cyan);
+                StartCoroutine(CheckDistanceFromDoor(navMeshHit.position, doorview, SDI));
             }
         }
     }
@@ -276,7 +288,6 @@ public class DonnyAI : MonoBehaviourPun
             }
         }
     }
-
     public void Chase()
     {
         Debug.Log("Chasing");
@@ -295,8 +306,6 @@ public class DonnyAI : MonoBehaviourPun
     {
         if (!isWalkPointSet) SearchWalkPoint();
 
-        agent.speed = agentWalkSpeed;
-
         Debug.Log("Patrolling");
         if (isWalkPointSet)
         {
@@ -307,9 +316,29 @@ public class DonnyAI : MonoBehaviourPun
             }
             else { isWalkPointSet = false; }
         }
-        if (Vector3.Distance(transform.position, walkPoint) < 2f)
+        if (Vector3.Distance(transform.position, walkPoint) < 2f) { isWalkPointSet = false; }
+    }
+    private void GoToPosition()
+    {
+        Debug.DrawLine(agentEyes.position, MovePos, Color.blue);
+
+        if (agent.pathStatus == NavMeshPathStatus.PathComplete)
         {
-            isWalkPointSet = false;
+            agent.SetDestination(MovePos);
+        }
+        else
+        {
+            Debug.Log("PathNotComplete");
+            isMovingToPos = false;
+            SearchWalkPoint();
+        }
+        float distanceToLastKnown = Vector3.Distance(transform.position, MovePos);
+        if (distanceToLastKnown < 2f)
+        {
+            Debug.Log("Completed--isMovingToPos");
+            agent.speed = agentWalkSpeed;
+            isMovingToPos = false;
+            SearchWalkPointFocused();
         }
     }
     public void SearchWalkPoint()
@@ -360,31 +389,45 @@ public class DonnyAI : MonoBehaviourPun
             }
         } while (!validWalkPoint && attempts < maxWalkPointAttempts);
     }
-    private void GoToPosition()
+    public void SearchWalkPointFocused()
     {
-        agent.speed = agentRunSpeed;
-        Debug.DrawLine(agentEyes.position, MovePos, Color.blue);
-
-        if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+        if (isMovingToPos) return;
+        bool validWalkPoint = false;
+        int attempts = 0;
+        do
         {
-            agent.SetDestination(MovePos);
-        }
-        else
-        {
-            Debug.Log("PathNotComplete");
-            isMovingToPos = false;
-            SearchWalkPoint();
-        }
-        float distanceToLastKnown = Vector3.Distance(transform.position, MovePos);
-        if (distanceToLastKnown < 2f)
-        {
-            Debug.Log("Completed--isMovingToPos");
-            agent.speed = agentWalkSpeed;
-            isMovingToPos = false;
-            SearchWalkPoint();
-        }
-
-        
+            attempts++;
+            float randomAngle = Random.Range(-25f, 25f);
+            float x = walkPointRange * Mathf.Cos(randomAngle * Mathf.Deg2Rad);
+            float z = walkPointRange * Mathf.Sin(randomAngle * Mathf.Deg2Rad);
+            Vector3 rotatedDirection = Quaternion.Euler(0, transform.eulerAngles.y, 0) * new Vector3(x, 0, z);
+            Vector3 walkPointDirection = new Vector3(transform.position.x + rotatedDirection.x, transform.position.y, transform.position.z + rotatedDirection.z);
+            NavMesh.SamplePosition(walkPointDirection, out NavMeshHit hit, walkPointRange, NavMesh.AllAreas);
+            agent.SetDestination(hit.position);
+            if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+            {
+                validWalkPoint = true;
+            }
+            if (validWalkPoint)
+            {
+                walkPoint = hit.position;
+                isWalkPointSet = true;
+                Debug.Log("Found walkpoint FOCUSED");
+            }
+            else
+            {
+                Debug.Log("finding Random Position on FOCUSED");
+                Vector3 randomDirection = Random.insideUnitSphere * walkPointRange;
+                randomDirection += transform.position;
+                NavMesh.SamplePosition(randomDirection, out hit, walkPointRange, NavMesh.AllAreas);
+                agent.SetDestination(hit.position);
+                if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+                {
+                    walkPoint = hit.position;
+                    isWalkPointSet = true;
+                }
+            }
+        } while (!validWalkPoint && attempts < maxWalkPointAttempts);
     }
     private void Listening()
     {

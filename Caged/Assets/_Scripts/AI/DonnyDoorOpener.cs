@@ -94,7 +94,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
     IEnumerator Door(DoorInfo info, int viewid)
     {
         info.isOpen = true;
-        donnyAI.doorStates[viewid] = info.isOpen;
+        donnyAI.DoorStates[viewid] = info.isOpen;
         StartCoroutine(EnableListeningAfterDelay(2f));
         info.DoorSound(true);
         float duration = 0.5f;
@@ -119,7 +119,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
     public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
     {
         info.isOpen = true;
-        donnyAI.doorStates[viewid] = info.isOpen;
+        donnyAI.DoorStates[viewid] = info.isOpen;
         info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
         StartCoroutine(EnableListeningAfterDelay(2f));
         float elapsedTime = 0f;
