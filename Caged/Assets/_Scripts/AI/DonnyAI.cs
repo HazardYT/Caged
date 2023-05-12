@@ -27,8 +27,6 @@ public class DonnyAI : MonoBehaviourPun
     [SerializeField] private float gracePeriodLength;
     [SerializeField] private float predictionAmount;
     [SerializeField] private float chanceOfSearch;
-    private float timeSinceLastHeard = 0f;
-    private float hearingCooldown = 0.2f;
     public bool isListening = true;
     public bool isRaged;
     public float rageChance;
@@ -60,12 +58,17 @@ public class DonnyAI : MonoBehaviourPun
 
     private void Start()
     {
-        SetDifficulty();
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            enabled = false;
+            return;
+        }
         if (!photonView.IsMine || PhotonNetwork.IsMasterClient)
         {
             gameObject.GetComponent<AudioListener>().enabled = false;
             return;
         }
+        photonView.RPC(nameof(SetDifficulty),RpcTarget.AllBufferedViaServer);   
     }
     private void Update()
     {
@@ -233,9 +236,8 @@ public class DonnyAI : MonoBehaviourPun
                 if (hit.collider.CompareTag("StaticDoor") || hit.collider.CompareTag("Door"))
                 {
                     Debug.Log("door memory");
-                    GameObject doorObj = obj.transform.root.gameObject;
-                    PhotonView doorView = doorObj.GetComponent<PhotonView>();
-                    bool currentIsOpen = hit.collider.CompareTag("StaticDoor") ? doorObj.GetComponent<StaticDoorInfo>().isOpen : doorObj.GetComponent<DoorInfo>().isOpen;
+                    PhotonView doorView = hit.collider.GetComponent<PhotonView>();
+                    bool currentIsOpen = hit.collider.CompareTag("StaticDoor") ? hit.collider.GetComponent<StaticDoorInfo>().isOpen : hit.collider.GetComponent<DoorInfo>().isOpen;
                     if (DoorStates.ContainsKey(doorView.ViewID))
                     {
                         if (DoorStates[doorView.ViewID] != currentIsOpen)
@@ -251,7 +253,7 @@ public class DonnyAI : MonoBehaviourPun
                             }
                         }
                     }
-                    else { DoorStates.Add(doorObj.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
+                    else { DoorStates.Add(hit.collider.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
                 }
             }
         }
@@ -291,7 +293,7 @@ public class DonnyAI : MonoBehaviourPun
     public void Chase()
     {
         Debug.Log("Chasing");
-        float distanceToTarget = Vector3.Distance(transform.position, Target.position);
+        float distanceToTarget = (transform.position - Target.position).sqrMagnitude;
 
         if (distanceToTarget <= maxRange)
         {
@@ -316,7 +318,7 @@ public class DonnyAI : MonoBehaviourPun
             }
             else { isWalkPointSet = false; }
         }
-        if (Vector3.Distance(transform.position, walkPoint) < 2f) { isWalkPointSet = false; }
+        if ((transform.position - walkPoint).sqrMagnitude < 2f * 2f) { isWalkPointSet = false; }
     }
     private void GoToPosition()
     {
@@ -332,7 +334,7 @@ public class DonnyAI : MonoBehaviourPun
             isMovingToPos = false;
             SearchWalkPoint();
         }
-        float distanceToLastKnown = Vector3.Distance(transform.position, MovePos);
+        float distanceToLastKnown = (transform.position - MovePos).sqrMagnitude;
         if (distanceToLastKnown < 2f)
         {
             Debug.Log("Completed--isMovingToPos");
@@ -441,7 +443,7 @@ public class DonnyAI : MonoBehaviourPun
                     continue;
                 if (source.gameObject.CompareTag("Listenable") || source.gameObject.CompareTag("Door") || source.gameObject.CompareTag("StaticDoor") || source.gameObject.CompareTag("Item"))
                 {
-                    float distance = Vector3.Distance(source.transform.position, agentEyes.position);
+                    float distance = (source.transform.position - agentEyes.position).sqrMagnitude;
                     if (distance <= hearingDistance)
                     {
                         float hearingVolume = Mathf.Lerp(0.2f, 0.8f, (distance - 2) / (hearingDistance - 2));
@@ -504,7 +506,7 @@ public class DonnyAI : MonoBehaviourPun
 
     IEnumerator CheckDistanceFromDoor(Vector3 pos, PhotonView doorview, StaticDoorInfo SDI)
     {
-        while (Vector3.Distance(transform.position, pos) >= 2f)
+        while ((transform.position - pos).sqrMagnitude >= 2f * 2f)
         {
             if (isChasing || isMovingToPos == true)
             {
@@ -525,7 +527,7 @@ public class DonnyAI : MonoBehaviourPun
         isChasing = false;
         PhotonView view = player.gameObject.GetComponent<PhotonView>();
         AttackInitial(player);
-        while (Vector3.Distance(transform.position, MovePos) > 2f)
+        while ((transform.position - MovePos).sqrMagnitude > 2f * 2)
         {
             yield return null;
         }
@@ -535,7 +537,7 @@ public class DonnyAI : MonoBehaviourPun
     {
         PhotonView view = player.gameObject.GetComponent<PhotonView>();
         view.TransferOwnership(PhotonNetwork.LocalPlayer);
-        photonView.RPC(nameof(DonnyRPC.DonnyCatching), RpcTarget.AllViaServer, view.ViewID, photonView.ViewID);
+        photonView.RPC(nameof(DonnyCatching), RpcTarget.AllViaServer, view.ViewID, photonView.ViewID);
         view.transform.position = transform.GetChild(0).transform.GetChild(0).position;
         Vector3 Pos = new Vector3(transform.position.x, view.transform.position.y, transform.position.z);
         view.transform.LookAt(Pos, Vector3.up);
@@ -547,7 +549,7 @@ public class DonnyAI : MonoBehaviourPun
     {
         view.transform.position = playerDropPos;
         view.TransferOwnership(view.Owner);
-        photonView.RPC(nameof(DonnyRPC.DonnyRelease), RpcTarget.AllViaServer, view.ViewID);
+        photonView.RPC(nameof(DonnyRelease), RpcTarget.AllViaServer, view.ViewID);
         agent.speed = agentWalkSpeed;
         isWalkPointSet = false;
         isMovingToPos = false;
@@ -561,7 +563,7 @@ public class DonnyAI : MonoBehaviourPun
     }
     private void Animation()
     {
-        if (Vector3.Distance(animationPos, agent.transform.position) <= 0.5f)
+        if ((animationPos - agent.transform.position).sqrMagnitude <= 0.5f * 0.5f)
         {
             Walking = false;
             Running = false;
@@ -589,6 +591,7 @@ public class DonnyAI : MonoBehaviourPun
 
         animationPos = agent.transform.position;
     }
+    [PunRPC]
     private void SetDifficulty()
     {
         switch (LobbyManager.Difficulty)
@@ -626,6 +629,33 @@ public class DonnyAI : MonoBehaviourPun
                 gracePeriodLength = 15;
                 break;
         }
+    }
+        [PunRPC]
+    public void DonnyCatching(int playerid, int viewid)
+    {
+        PhotonView playerview = PhotonView.Find(playerid);
+        PhotonView view = PhotonView.Find(viewid);
+        playerview.transform.SetParent(view.transform.GetChild(0).transform.GetChild(0).transform);
+        playerview.GetComponent<PlayerMovement>().enabled = false;
+        playerview.GetComponent<InventoryManager>().enabled = false;
+        playerview.GetComponent<CharacterController>().enabled = false;
+        playerview.GetComponent<CapsuleCollider>().enabled = false;
+        playerview.GetComponent<Interactions>().enabled = false;
+        playerview.tag = "Grabbed";
+        playerview.gameObject.layer = 11;
+    }
+    [PunRPC]
+    public void DonnyRelease(int playerid)
+    {
+        PhotonView playerview = PhotonView.Find(playerid);
+        playerview.transform.SetParent(null);
+        playerview.GetComponent<PlayerMovement>().enabled = true;
+        playerview.GetComponent<InventoryManager>().enabled = true;
+        playerview.GetComponent<CharacterController>().enabled = true;
+        playerview.GetComponent<CapsuleCollider>().enabled = true;
+        playerview.GetComponent<Interactions>().enabled = true;
+        playerview.tag = "Player";
+        playerview.gameObject.layer = 8;
     }
     private void OnDrawGizmos()
     {

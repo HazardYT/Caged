@@ -112,7 +112,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             yield return null;
         }
         info.transform.localRotation = newRot;
-        photonView.RPC(nameof(DonnyRPC.SetDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
+        photonView.RPC(nameof(SetDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
         yield return new WaitForSeconds(1.5f);
         DoorCooldown = false;
     }
@@ -130,7 +130,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
             yield return null;
         }
         info.transform.localRotation = info.OpenRot;
-        photonView.RPC(nameof(DonnyRPC.SetStaticDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
+        photonView.RPC(nameof(SetStaticDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
         yield return new WaitForSeconds(3f);
         StaticDoorCooldown = false;
     }
@@ -139,5 +139,21 @@ public class DonnyDoorOpener : MonoBehaviourPun
         donnyAI.isListening = false;
         yield return new WaitForSeconds(delay);
         donnyAI.isListening = true;
+    }
+    [PunRPC]
+    public void SetDoorState(int viewid, bool isOpen)
+    {
+        PhotonView view = PhotonView.Find(viewid);
+        DoorInfo info = view.transform.GetComponent<DoorInfo>();
+        info.isOpen = isOpen;
+        view.gameObject.GetComponent<NavMeshObstacle>().carving = isOpen;
+    }
+    [PunRPC]
+    public void SetStaticDoorState(int viewid, bool isOpen)
+    {
+        PhotonView view = PhotonView.Find(viewid);
+        StaticDoorInfo info = view.transform.GetComponent<StaticDoorInfo>();
+        info.isOpen = isOpen;
+        view.gameObject.GetComponent<NavMeshObstacle>().carving = isOpen;
     }
 }
