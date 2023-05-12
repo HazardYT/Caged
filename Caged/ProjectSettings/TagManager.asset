@@ -17,6 +17,8 @@ TagManager:
   - HidingSpot
   - Grabbed
   - Safe
+  - Drawer
+  - ValueableSpawn
   layers:
   - Default
   - TransparentFX

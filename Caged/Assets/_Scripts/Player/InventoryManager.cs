@@ -70,17 +70,17 @@ public class InventoryManager : MonoBehaviourPun
             return;
         }
         PhotonView hitview = PhotonView.Find(hit.transform.GetComponent<PhotonView>().ViewID);
+        ItemInfo info = hitview.gameObject.GetComponent<ItemInfo>();
         if (!hitview.IsMine && hitview != null)
         {
-             hitview.RequestOwnership();
-             StartCoroutine(DestroyObject(hitview));
+            hitview.RequestOwnership();
+            StartCoroutine(DestroyObject(hitview));
         }
         else
-        {
-            ItemInfo info = hitview.gameObject.GetComponent<ItemInfo>();
+        {           
             if (info.isValueable){
                 photonView.RPC(nameof(AddMoneyToManager),RpcTarget.AllViaServer, info.ValueableWorth);
-                StartCoroutine(hudText.SetHud(hitview.transform.name + " + $" + info.ValueableWorth, Color.green));
+                StartCoroutine(hudText.SetHud("+ $" + info.ValueableWorth, Color.green));
             }
             else{
                 AddItem(hitview.transform.name);
@@ -93,7 +93,7 @@ public class InventoryManager : MonoBehaviourPun
     [PunRPC]
     public void AddMoneyToManager(float amount){
         Manager._moneyCollected += amount;
-        Manager.moneyText.text = "" + Manager._moneyCollected;
+        Manager.moneyText.text = "$" + Manager._moneyCollected;
     }
     public void Update()
     {

@@ -5,9 +5,12 @@ using UnityEngine.AI;
 
 public class Interactions : MonoBehaviourPun
 {
-    public float InteractLength = 3.5f;
+    public AudioSource audioSource;
+    public AudioClip[] ValueablesPickupClips;
+    public float InteractDistance = 3.5f;
     private bool DoorCooldown = false;
     private bool StaticDoorCooldown = false;
+    private bool DrawerCooldown = false;
     private bool LightCooldown = false;
     private Camera playerCam;
     public InventoryManager InventoryManager;
@@ -16,9 +19,10 @@ public class Interactions : MonoBehaviourPun
 
     private void Awake()
     {
-        if (photonView.IsMine)
+        if (photonView.IsMine) {
             playerCam = gameObject.GetComponent<PlayerMovement>().playerCam;
-        hudText = GameObject.Find("GameUI").GetComponent<HudText>();
+            hudText = GameObject.FindObjectOfType<HudText>();
+        }
     }
     public void Update()
     {
@@ -31,11 +35,12 @@ public class Interactions : MonoBehaviourPun
                 Ray ray = playerCam.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
 
-                if (Physics.Raycast(ray, out hit, InteractLength))
+                if (Physics.Raycast(ray, out hit, InteractDistance))
                 {
                     if (hit.collider.gameObject.CompareTag("Item"))
                     {
                         InventoryManager.Interact(hit);
+                        if (hit.collider.gameObject.GetComponent<ItemInfo>().isValueable) { photonView.RPC(nameof(RPCValueablesSound),RpcTarget.AllViaServer, photonView.ViewID); }
                     }
                     if (hit.collider.gameObject.CompareTag("Door") && !DoorCooldown)
                     {
@@ -68,21 +73,14 @@ public class Interactions : MonoBehaviourPun
                         LightCooldown = true;
                         PhotonView lightview = hit.collider.gameObject.GetComponent<PhotonView>();
                         LightInfo LI = lightview.gameObject.GetComponent<LightInfo>();
-                        if (lightview.Owner != PhotonNetwork.LocalPlayer)
-                        {
-                            lightview.RequestOwnership();
-                        }
+                        if (lightview.Owner != PhotonNetwork.LocalPlayer) { lightview.RequestOwnership(); }
                         StartCoroutine(LightSwitchToggle(LI, lightview.ViewID));
                     }
                     if (hit.collider.gameObject.CompareTag("StaticDoor") && !StaticDoorCooldown)
                     {
                         PhotonView sdoorview = hit.collider.gameObject.GetComponent<PhotonView>();
                         StaticDoorInfo SDI = sdoorview.gameObject.GetComponent<StaticDoorInfo>();
-                        InventoryManager IM = photonView.gameObject.GetComponent<InventoryManager>();
-                        if (sdoorview.Owner != PhotonNetwork.LocalPlayer)
-                        {
-                            sdoorview.RequestOwnership();
-                        }
+                        if (sdoorview.Owner != PhotonNetwork.LocalPlayer) { sdoorview.RequestOwnership(); }
                         StartCoroutine(StaticDoor(SDI, sdoorview.ViewID));
                     }
                     if (hit.collider.gameObject.CompareTag("Safe"))
@@ -96,16 +94,53 @@ public class Interactions : MonoBehaviourPun
                         {
                             PhotonView sview = safe.SafeDoor.GetComponent<PhotonView>();
                             StaticDoorInfo SDI = sview.gameObject.GetComponent<StaticDoorInfo>();
-                            if (sview.Owner != PhotonNetwork.LocalPlayer)
-                            {
-                                sview.RequestOwnership();
-                            }
+                            if (sview.Owner != PhotonNetwork.LocalPlayer) { sview.RequestOwnership(); }
                             StartCoroutine(StaticDoor(SDI, sview.ViewID));
                         }
+                    }
+                    if (hit.collider.gameObject.CompareTag("Drawer") && !DrawerCooldown)
+                    {
+                        PhotonView drawerview = hit.collider.gameObject.GetComponent<PhotonView>();
+                        DrawerInfo DI = drawerview.gameObject.GetComponent<DrawerInfo>();
+                        if (drawerview.Owner != PhotonNetwork.LocalPlayer) { drawerview.RequestOwnership(); }
+                        StartCoroutine(Drawer(DI, drawerview.ViewID));
                     }
                 }
             }
         }
+    }
+    public IEnumerator Drawer(DrawerInfo info, int viewid)
+    {
+        DrawerCooldown = true;
+        if (!info.isOpen)
+        {
+            info.isOpen = true;
+            info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
+            float elapsedTime = 0f;
+            while (elapsedTime < 0.3f)
+            {
+                info.transform.localPosition = Vector3.Slerp(info.ClosePos, info.OpenPos, elapsedTime / 0.3f);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+            info.transform.localPosition = info.OpenPos;
+        }
+        else
+        {
+            info.isOpen = false;
+            info.gameObject.GetComponent<NavMeshObstacle>().carving = false;
+            float duration = 0.3f;
+            float elapsedTime = 0f;
+            while (elapsedTime < duration)
+            {
+                info.transform.localPosition= Vector3.Slerp(info.OpenPos, info.ClosePos, elapsedTime / duration);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+            info.transform.localPosition = info.ClosePos;
+        }
+        photonView.RPC(nameof(SetDrawerState), RpcTarget.OthersBuffered, viewid, info.isOpen);
+        DrawerCooldown = false;
     }
     public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
     {
@@ -226,6 +261,14 @@ public class Interactions : MonoBehaviourPun
         info.gameObject.GetComponent<NavMeshObstacle>().carving = isOpen;
     }
     [PunRPC]
+    void SetDrawerState(int viewid, bool isOpen)
+    {
+        PhotonView view = PhotonView.Find(viewid);
+        DrawerInfo info = view.transform.GetComponent<DrawerInfo>();
+        info.isOpen = isOpen;
+        info.gameObject.GetComponent<NavMeshObstacle>().carving = isOpen;
+    }
+    [PunRPC]
     void SetLockState(int viewid, bool i)
     {
         PhotonView view = PhotonView.Find(viewid);
@@ -239,5 +282,12 @@ public class Interactions : MonoBehaviourPun
         LI.isOn = i;
         LI.lightSwitch.gameObject.SetActive(i);
     }
-
+    [PunRPC]
+    public void RPCValueablesSound(int viewid){
+        PhotonView view = PhotonView.Find(viewid);
+        Interactions i = view.GetComponent<Interactions>();
+        int sound = Random.Range(0, i.ValueablesPickupClips.Length);
+        i.audioSource.clip = ValueablesPickupClips[sound];
+        i.audioSource.Play();
+    }
 }

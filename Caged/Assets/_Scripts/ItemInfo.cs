@@ -5,12 +5,12 @@ public class ItemInfo : MonoBehaviourPun
     public bool locked = false;
     public bool isValueable;
     public float ValueableWorth;
-    [SerializeField] private AudioSource audioSource;
+    public AudioSource audioSource;
     [SerializeField] private AudioClip[] audioClips;
     private void OnCollisionEnter(Collision collision){
         if (locked || isValueable) {return;}
         int clipNum = Random.Range(0, audioClips.Length);
-        photonView.RPC(nameof(RPCItemSound), RpcTarget.All, photonView.ViewID, clipNum);
+        photonView.RPC(nameof(RPCItemSound), RpcTarget.AllViaServer, photonView.ViewID, clipNum);
     }
     [PunRPC]
     public void RPCItemSound(int viewid,int num){

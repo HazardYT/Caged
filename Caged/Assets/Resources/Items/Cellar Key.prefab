@@ -16,9 +16,9 @@ GameObject:
   - component: {fileID: 4339726915930705012}
   - component: {fileID: 9142874374130546143}
   - component: {fileID: 1309460796355636853}
-  - component: {fileID: -7491536342854480947}
   - component: {fileID: 4303308906869019101}
   - component: {fileID: 4038727112470589430}
+  - component: {fileID: 5971569754381167669}
   m_Layer: 0
   m_Name: Cellar Key
   m_TagString: Item
@@ -176,28 +176,6 @@ MonoBehaviour:
   m_SynchronizeAngularVelocity: 0
   m_TeleportEnabled: 0
   m_TeleportIfDistanceGreaterThan: 3
---- !u!114 &-7491536342854480947
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2354993831020024995}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  visibilityDistance: 7
-  outlineMode: 1
-  outlineColor: {r: 1, g: 0, b: 0, a: 1}
-  outlineWidth: 2
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
 --- !u!114 &4303308906869019101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,6 +189,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   locked: 0
+  isValueable: 0
+  ValueableWorth: 0
   audioSource: {fileID: 4038727112470589430}
   audioClips:
   - {fileID: 8300000, guid: c192ca30ac3257d40b7b459a7e69fac7, type: 3}
@@ -314,3 +294,26 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5971569754381167669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2354993831020024995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a34dce33c4213c4393266fbcd799d5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  checkRadius: 5
+  checkInterval: 0.5
+  playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  material: {fileID: 2100000, guid: 6e4f26dca34a46d4792b902fc997e631, type: 2}
+  color: {r: 1, g: 0.7813062, b: 0, a: 1}
+  mask: {fileID: 0}
+  fresnelScale: 2
+  fresnelPower: 2
+  alphaThreshold: 0.5

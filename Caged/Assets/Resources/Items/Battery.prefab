@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 6442738593332592900}
   - component: {fileID: 6442738593332592921}
   - component: {fileID: 6442738593332592923}
-  - component: {fileID: 6442738593332592901}
+  - component: {fileID: 4371946677204808173}
   m_Layer: 0
   m_Name: Battery
   m_TagString: Item
@@ -254,6 +254,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   locked: 0
+  isValueable: 0
+  ValueableWorth: 0
   audioSource: {fileID: 6442738593332592927}
   audioClips:
   - {fileID: 8300000, guid: a2cc4774addfa1b4e805c2800c0b0e99, type: 3}
@@ -293,7 +295,7 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
---- !u!114 &6442738593332592901
+--- !u!114 &4371946677204808173
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -302,16 +304,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 7317574944378147843}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5a34dce33c4213c4393266fbcd799d5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerMask:
+  checkRadius: 5
+  checkInterval: 0.5
+  playerLayerMask:
     serializedVersion: 2
-    m_Bits: 256
-  visibilityDistance: 7
-  outlineMode: 1
-  outlineColor: {r: 0.91156626, g: 1, b: 0, a: 1}
-  outlineWidth: 2
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
+    m_Bits: 0
+  material: {fileID: 2100000, guid: 6e4f26dca34a46d4792b902fc997e631, type: 2}
+  color: {r: 1, g: 0.89140123, b: 0, a: 1}
+  mask: {fileID: 0}
+  fresnelScale: 2
+  fresnelPower: 2
+  alphaThreshold: 0.5

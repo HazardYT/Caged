@@ -15,6 +15,12 @@ namespace Knife.HDRPOutline.Core
         /// </summary>
         internal static Action<CommandBuffer, Plane[]> onRender;
 
+        [Tooltip("Radius to check for players")]
+        [SerializeField] private float checkRadius = 5f;
+        [Tooltip("Interval in seconds to check for players")]
+        [SerializeField] private float checkInterval = 0.5f;
+        [Tooltip("Layer mask for players")]
+        [SerializeField] private LayerMask playerLayerMask;
         [Tooltip("Outline material")]
         [SerializeField] private Material material;
         [Tooltip("Color of outline")]
@@ -28,6 +34,7 @@ namespace Knife.HDRPOutline.Core
         [Tooltip("Mask alpha threshold")]
         [SerializeField] [Range(0f, 1f)] private float alphaThreshold = 0.5f;
 
+        private bool outlineEnabled = false;
         private Renderer attachedRenderer;
         private Mesh attachedMesh;
         private MaterialPropertyBlock propertyBlock;
@@ -126,7 +133,28 @@ namespace Knife.HDRPOutline.Core
         {
             Initialize();
         }
+    /*private void Start()
+    {
+        StartCoroutine(CheckForPlayersCoroutine());
+    }
 
+    private IEnumerator CheckForPlayersCoroutine()
+    {
+        while (true)
+        {
+            CheckForPlayers();
+            yield return new WaitForSeconds(checkInterval);
+        }
+    }
+
+    private void CheckForPlayers()
+    {
+        bool playerInRange = Physics.CheckSphere(transform.position, checkRadius, playerLayerMask);
+        if (playerInRange){
+            EnableOutline();
+        } else {DisableOutline();}
+    }
+*/
         public void Initialize()
         {
             attachedRenderer = GetComponent<Renderer>();
@@ -223,14 +251,17 @@ namespace Knife.HDRPOutline.Core
             }
         }
 
-        private void OnDisable()
-        {
-            onRender -= OnRender;
-        }
+    private void EnableOutline()
+    {
+        outlineEnabled = true;
+        onRender += OnRender;
+        PushParameters();
+    }
 
-        private void OnDestroy()
-        {
-            onRender -= OnRender;
-        }
+    private void DisableOutline()
+    {
+        outlineEnabled = false;
+        onRender -= OnRender;
+    }
     }
 }

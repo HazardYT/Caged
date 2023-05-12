@@ -114,6 +114,8 @@ MonoBehaviour:
   - PlaySound
   - SetDifficulty
   - AddMoneyToManager
+  - SetDrawerState
+  - RPCValueablesSound
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

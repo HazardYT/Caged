@@ -16,9 +16,9 @@ GameObject:
   - component: {fileID: 2085265330317841607}
   - component: {fileID: 3913443955134877941}
   - component: {fileID: 9149221782382269325}
-  - component: {fileID: 1273489932595302899}
   - component: {fileID: 7503093172514194114}
   - component: {fileID: 5010364918023888714}
+  - component: {fileID: 8610404032210047470}
   m_Layer: 0
   m_Name: Jail Key
   m_TagString: Item
@@ -176,28 +176,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &1273489932595302899
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6681290350381787864}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  visibilityDistance: 7
-  outlineMode: 1
-  outlineColor: {r: 0, g: 0.4521885, b: 1, a: 1}
-  outlineWidth: 2
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
 --- !u!114 &7503093172514194114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,6 +189,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   locked: 0
+  isValueable: 0
+  ValueableWorth: 0
   audioSource: {fileID: 5010364918023888714}
   audioClips:
   - {fileID: 8300000, guid: c192ca30ac3257d40b7b459a7e69fac7, type: 3}
@@ -314,3 +294,26 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &8610404032210047470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6681290350381787864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a34dce33c4213c4393266fbcd799d5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  checkRadius: 5
+  checkInterval: 0.5
+  playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  material: {fileID: 2100000, guid: 6e4f26dca34a46d4792b902fc997e631, type: 2}
+  color: {r: 0, g: 0.068023205, b: 1, a: 1}
+  mask: {fileID: 0}
+  fresnelScale: 2
+  fresnelPower: 2
+  alphaThreshold: 0.5
