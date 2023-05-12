@@ -2,11 +2,13 @@ using UnityEngine;
 using TMPro;
 using Photon.Pun;
 
-public class GameTimer : MonoBehaviourPun, IPunObservable
+public class GameManager : MonoBehaviourPun, IPunObservable
 {
     public TextMeshProUGUI timeText;
+    public TextMeshProUGUI moneyText;
     private float elapsedTime;
     public bool timerOn = false;
+    public float _moneyCollected = 0;
 
     private int syncedMinutes = 0;
     private int syncedSeconds = 0;

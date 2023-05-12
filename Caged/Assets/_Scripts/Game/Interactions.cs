@@ -53,10 +53,10 @@ public class Interactions : MonoBehaviourPun
                                 IM.RemoveEquippedItem();
                                 DI.isLocked = false;
                                 photonView.RPC(nameof(SetLockState), RpcTarget.OthersBuffered, doorview.ViewID, false);
-                                StartCoroutine(hudText.SetHud("Door is Unlocked!"));
+                                StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
                                 
                             }
-                            else StartCoroutine(hudText.SetHud("The Door is Locked.. \n Requires " + DI.KeyName));
+                            else StartCoroutine(hudText.SetHud("The Door is Locked.. \n Requires " + DI.KeyName, Color.red));
                         }
                         else
                         {
@@ -150,7 +150,7 @@ public class Interactions : MonoBehaviourPun
             }
             else info.isOn = true;
         }
-        else StartCoroutine(hudText.SetHud("Power is Off!"));
+        else StartCoroutine(hudText.SetHud("Power is Off!", Color.red));
 
         photonView.RPC(nameof(ToggleLightRPC), RpcTarget.AllBuffered, viewid, info.isOn);
         yield return new WaitForSeconds(0.05f);

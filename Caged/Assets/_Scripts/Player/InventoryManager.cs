@@ -7,37 +7,31 @@ using UnityEngine.UI;
 
 public class InventoryManager : MonoBehaviourPun
 {
-    [SerializeField] 
-    private int ItemCount;
+    [SerializeField] private int ItemCount;
     public int InventorySlotCount = 2;
     public Transform playerCam;
     public Transform Equipped = null;
-    public Sprite[] spritelist;
-    public Transform[] fill;
-    public Image[] equippedslot;
-    public string[] Itemlist;
     private HudText hudText;
+    private GameManager Manager;
     public float maxThrowDistance = 20f;
     [SerializeField] private Slider slider;
     private float throwTimer = 0f;
     private bool isThrowing = false;
     [SerializeField] private TextMeshProUGUI useText;
     int currentSlotController = 0;
-
-
-    public string[] Slots;
-    public Image[] SlotImage;
-
     public int CurrentSlot;
-
     private float slotSwitchDelay = 0.05f;
     private float slotSwitchTimer = 0f;
 
+    public string[] Slots;
+    public Image[] SlotImage;
+    public Transform[] fill;
+    public Image[] equippedslot;
+
     public void Start()
     {
-        if(!PhotonNetwork.OfflineMode){
-            hudText = GameObject.Find("GameUI").GetComponent<HudText>();
-        }
+        Manager = GameObject.FindObjectOfType<GameManager>();
+        hudText = GameObject.FindObjectOfType<HudText>();
         if (!photonView.IsMine)
         {
             this.enabled = false;
@@ -83,11 +77,23 @@ public class InventoryManager : MonoBehaviourPun
         }
         else
         {
-            AddItem(hitview.transform.name);
-            StartCoroutine(hudText.SetHud("Picked up " + hitview.transform.name));
+            ItemInfo info = hitview.gameObject.GetComponent<ItemInfo>();
+            if (info.isValueable){
+                photonView.RPC(nameof(AddMoneyToManager),RpcTarget.AllViaServer, info.ValueableWorth);
+                StartCoroutine(hudText.SetHud(hitview.transform.name + " + $" + info.ValueableWorth, Color.green));
+            }
+            else{
+                AddItem(hitview.transform.name);
+                StartCoroutine(hudText.SetHud("Picked up " + hitview.transform.name, Color.white));
+            }
             PhotonNetwork.Destroy(hitview.gameObject);
 
         }
+    }
+    [PunRPC]
+    public void AddMoneyToManager(float amount){
+        Manager._moneyCollected += amount;
+        Manager.moneyText.text = "" + Manager._moneyCollected;
     }
     public void Update()
     {
@@ -234,7 +240,7 @@ public class InventoryManager : MonoBehaviourPun
                 }
                 string parseString = FindArrayNumber(name);
                 int arrayNumber = int.Parse(parseString);
-                SlotImage[i].sprite = spritelist[arrayNumber];
+                SlotImage[i].sprite = ItemManager.instance.ItemSprites[arrayNumber];
                 Debug.Log("Added Item to slot: " + arrayNumber);
                 Slots[i] = name;
                 ItemCount++;
@@ -295,7 +301,7 @@ public class InventoryManager : MonoBehaviourPun
             GameObject obj = PhotonNetwork.Instantiate("Items/" + Slots[i], Equipped.position, Equipped.rotation);
             obj.transform.SetParent(Equipped);
             obj.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-            obj.gameObject.GetComponent<ItemSound>().locked = true;
+            obj.gameObject.GetComponent<ItemInfo>().locked = true;
             obj.name = Slots[i];
             obj.tag = "Equipped";
             photonView.RPC(nameof(EquipRPC), RpcTarget.Others, obj.GetComponent<PhotonView>().ViewID, photonView.ViewID);
@@ -307,7 +313,7 @@ public class InventoryManager : MonoBehaviourPun
             PhotonNetwork.Destroy(Equipped.GetChild(0).gameObject);
             GameObject obj = PhotonNetwork.Instantiate("Items/" + Slots[i], Equipped.position, Equipped.rotation);
             obj.transform.SetParent(Equipped);
-            obj.gameObject.GetComponent<ItemSound>().locked = true;
+            obj.gameObject.GetComponent<ItemInfo>().locked = true;
             obj.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
             obj.name = Slots[i];
             obj.tag = "Equipped";
@@ -333,7 +339,7 @@ public class InventoryManager : MonoBehaviourPun
         obj.tag = "Item";
         Rigidbody rb = obj.GetComponent<Rigidbody>();
         rb.AddForce(playerCam.transform.forward * force, ForceMode.Impulse);
-        obj.gameObject.GetComponent<ItemSound>().locked = false;
+        obj.gameObject.GetComponent<ItemInfo>().locked = false;
         obj.GetComponent<PhotonView>().TransferOwnership(0);
         Slots[CurrentSlot] = null;
         SlotImage[CurrentSlot].enabled = false;
@@ -343,9 +349,9 @@ public class InventoryManager : MonoBehaviourPun
     }
     public string FindArrayNumber(string T)
     {
-        for (int i = 0; i < Itemlist.Length; i++)
+        for (int i = 0; i < ItemManager.instance.ItemNames.Count; i++)
         {
-            if (Itemlist[i] == T)
+            if (ItemManager.instance.ItemNames[i] == T)
             {
                 return i.ToString();
             }
@@ -359,7 +365,7 @@ public class InventoryManager : MonoBehaviourPun
         PhotonView view = PhotonView.Find(viewid);
         view.gameObject.name = name;
         view.gameObject.tag = "Item";
-        view.gameObject.GetComponent<ItemSound>().locked = false;
+        view.gameObject.GetComponent<ItemInfo>().locked = false;
         view.TransferOwnership(0);
     }
     [PunRPC]
@@ -371,7 +377,7 @@ public class InventoryManager : MonoBehaviourPun
         Objview.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
         Objview.gameObject.transform.SetParent(viewIM);
         Objview.gameObject.tag = "Equipped";
-        Objview.gameObject.GetComponent<ItemSound>().locked = true;
+        Objview.gameObject.GetComponent<ItemInfo>().locked = true;
         Objview.gameObject.transform.position = viewIM.position;
         Objview.gameObject.transform.rotation = viewIM.rotation;
     }

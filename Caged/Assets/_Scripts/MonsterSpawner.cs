@@ -66,6 +66,6 @@ public class MonsterSpawner : MonoBehaviourPun
     [PunRPC]
     public void NotifySpawn()
     {
-        StartCoroutine(hudText.SetHud("What is that noise?"));
+        StartCoroutine(hudText.SetHud("What is that noise?", Color.white));
     }
 }

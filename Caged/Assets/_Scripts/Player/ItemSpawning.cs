@@ -5,8 +5,6 @@ using System.Collections.Generic;
 
 public class ItemSpawning : MonoBehaviourPun
 {
-    [Header("Items")]
-    public string[] ItemNames;
     [Header("Spawn Points")]
     public Transform[] frontdoorKeySpawn;
     public Transform[] meatSpawnPoints;
@@ -43,27 +41,27 @@ public class ItemSpawning : MonoBehaviourPun
         {
             if (Input.GetKeyDown(KeyCode.Alpha5))
             {
-                StartCoroutine(SpawnItem(ItemNames[0], 1, junkSpawnPoints));
+                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[0], 1, junkSpawnPoints));
             }
             if (Input.GetKeyDown(KeyCode.Alpha6))
             {
-                StartCoroutine(SpawnItem(ItemNames[1], 1, meatSpawnPoints));
+                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[1], 1, meatSpawnPoints));
             }
             if (Input.GetKeyDown(KeyCode.Alpha7))
             {
-                StartCoroutine(SpawnItem(ItemNames[2], 1, RoomKeySpawnPoints));
+                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[2], 1, RoomKeySpawnPoints));
             }
             if (Input.GetKeyDown(KeyCode.Alpha8))
             {
-                StartCoroutine(SpawnItem(ItemNames[3], 1, JailKeySpawnPoints));
+                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[3], 1, JailKeySpawnPoints));
             }
             if (Input.GetKeyDown(KeyCode.Alpha9))
             {
-                StartCoroutine(SpawnItem(ItemNames[4], 1, CellarKeySpawnPoints));
+                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[4], 1, CellarKeySpawnPoints));
             }
             if (Input.GetKeyDown(KeyCode.Alpha0))
             {
-                StartCoroutine(SpawnItem(ItemNames[5], 1, CageKeySpawnPoints));
+                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[5], 1, CageKeySpawnPoints));
             }
         }
     }

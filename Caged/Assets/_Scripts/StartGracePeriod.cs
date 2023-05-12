@@ -23,7 +23,7 @@ public class StartGracePeriod : MonoBehaviourPun
         spawned = true;
         if (PhotonNetwork.IsMasterClient)
         {
-            GameObject.Find("GameUI").GetComponent<GameTimer>().timerOn = true;
+            GameObject.FindObjectOfType<GameManager>().timerOn = true;
         }
     }
 }

@@ -1,18 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
+using Photon.Pun;
 
-public class ItemManager : MonoBehaviour
+public class ItemManager : MonoBehaviourPun
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public static ItemManager instance;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public List<Sprite> ItemSprites = new List<Sprite>();
+    public List<Sprite> ValueablesSprites = new List<Sprite>();
+    [HideInInspector] public List<string> ItemNames = new List<string>();
+    [HideInInspector] public List<string> ValueablesNames = new List<string>();
+
+    public void Awake(){
+        if (instance == null) { instance = this; }
+        for (int i = 0; i < ItemSprites.Count; i++)
+        {
+            ItemNames.Add(ItemSprites[i].name);
+        }
+        for (int v = 0; v < ValueablesSprites.Count; v++)
+        {
+            ValueablesNames.Add(ValueablesSprites[v].name);
+        }
     }
 }

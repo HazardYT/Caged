@@ -36,9 +36,7 @@ public class DonnyAI : MonoBehaviourPun
     public float agentRunSpeed;
 
     [Header("Info")]
-    private float stuckTimer = 0f;
     private Vector3 previousPosition;
-
     private Vector3 animationPos;
     public bool isGraceMode = false;
     [SerializeField] private Transform Target = null;
