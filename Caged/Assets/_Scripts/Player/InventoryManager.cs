@@ -257,6 +257,11 @@ public class InventoryManager : MonoBehaviourPun
         equippedslot[CurrentSlot].enabled = false;
         ItemCount--;
     }
+    public void RemoveSlotItem(int i){
+        Slots[i] = null;
+        SlotImage[i].enabled = false;
+        ItemCount--;
+    }
     public void EquipItem(int i)
     {
         bool hasItems = false;

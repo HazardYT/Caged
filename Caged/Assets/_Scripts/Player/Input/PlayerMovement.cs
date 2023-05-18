@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviourPun
 {
     [Header("Variables")]
     public bool isInGUI = false;
+    private float verticalVelocity = 0f;
     [SerializeField] private Slider slider;
     [SerializeField] private CharacterController controller;
     [SerializeField] private float standingHeight = 2.5f;
@@ -120,12 +121,17 @@ public class PlayerMovement : MonoBehaviourPun
         Vector3 movement = move.y * transform.forward + move.x * transform.right;
         if (!controller.isGrounded)
         {
-            movement.y -= gravity * Time.deltaTime;
+            verticalVelocity -= gravity * Time.deltaTime;
         }
+        else
+        {
+            verticalVelocity = 0f;
+        }
+        movement.y = verticalVelocity;
         controller.Move(movement * speed * Time.deltaTime);
+        Animation(isRunning);
         Stamina(isRunning);
         Crouch(isCrouching, isProne, speed);
-        Animation(isRunning);
     }
     public void Crouch(bool isCrouching, bool isProne, float speed)
     {
@@ -234,26 +240,24 @@ public class PlayerMovement : MonoBehaviourPun
     {
         if (controller.isGrounded)
         {
-            if (controller.velocity.magnitude > 0)
-            {
-                if (running)
-                {
-                    Running = true;
-                    Walking = false;
-                }
-                if (!running)
-                {
-                    Walking = true;
-                    Running = false;
-                }
-            }
-            else
+            if (controller.velocity.sqrMagnitude < 0.1f)
             {
                 Walking = false;
                 Running = false;
             }
+            else if (running && controller.velocity.sqrMagnitude > 3)
+            {
+                Running = true;
+                Walking = false;
+            }
+            else if (!running && controller.velocity.sqrMagnitude > 1)
+            {
+                Walking = true;
+                Running = false;
+            }
         }
     }
+
     private SurfaceType DetectSurfaceType()
     {
         RaycastHit hit;

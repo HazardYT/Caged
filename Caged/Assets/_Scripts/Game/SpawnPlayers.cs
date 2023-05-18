@@ -10,10 +10,7 @@ public class SpawnPlayers : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        if (PhotonNetwork.IsConnected)
-        {
-            SpawnPlayer();
-        }
+        SpawnPlayer();
     }
 
     [PunRPC]

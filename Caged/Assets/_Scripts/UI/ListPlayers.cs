@@ -21,9 +21,8 @@ public class ListPlayers : MonoBehaviourPunCallbacks
         yield return new WaitForEndOfFrame();
 
         // Instantiate the player object and set its parent to the content transform
-        Debug.Log("Instantiating player object");
         GameObject newPlayerObject = PhotonNetwork.Instantiate("Other/" + textPrefab.name, Vector3.zero, Quaternion.identity);
-        Debug.Log("Player object instantiated: " + newPlayerObject);
+        Debug.Log("Player instantiated, view: " + newPlayerObject.GetComponent<PhotonView>().ViewID);
         newPlayerObject.transform.SetParent(contentTransform);
         PhotonView playerView = newPlayerObject.gameObject.GetComponent<PhotonView>();
         newPlayerObject.name = "" + playerView.ViewID;

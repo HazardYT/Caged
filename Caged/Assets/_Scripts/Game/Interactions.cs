@@ -17,6 +17,7 @@ public class Interactions : MonoBehaviourPun
     private HudText hudText;
     bool isinteract = true;
 
+    // Setting up variables if the view is mine
     private void Awake()
     {
         if (photonView.IsMine) {
@@ -24,6 +25,7 @@ public class Interactions : MonoBehaviourPun
             hudText = GameObject.FindObjectOfType<HudText>();
         }
     }
+    // Checking interact button and if so it will raycast to it and whatever tag it hits it will run the respective code.
     public void Update()
     {
         if (!photonView.IsMine)
@@ -47,27 +49,40 @@ public class Interactions : MonoBehaviourPun
                         PhotonView doorview = hit.collider.gameObject.GetComponent<PhotonView>();
                         DoorInfo DI = doorview.gameObject.GetComponent<DoorInfo>();
                         InventoryManager IM = photonView.gameObject.GetComponent<InventoryManager>();
-                        if (doorview.Owner != PhotonNetwork.LocalPlayer)
-                        {
-                            doorview.RequestOwnership();
-                        }
-                        if (DI.isLocked)
-                        {
-                            if (IM.Equipped.childCount > 0 && (IM.Equipped.GetChild(0).name == DI.KeyName))
-                            {
+                        if (doorview.Owner != PhotonNetwork.LocalPlayer) { doorview.RequestOwnership(); }
+                        if (DI.isLocked){
+                            bool foundKey = false;
+                            if (IM.Equipped.childCount > 0 && IM.Equipped.GetChild(0).name == DI.KeyName){
                                 IM.RemoveEquippedItem();
-                                DI.isLocked = false;
-                                photonView.RPC(nameof(SetLockState), RpcTarget.OthersBuffered, doorview.ViewID, false);
-                                StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
-                                
+                                foundKey = true;
                             }
-                            else StartCoroutine(hudText.SetHud("The Door is Locked.. \n Requires " + DI.KeyName, Color.red));
+                            else{
+                                for (int i = 0; i < IM.Slots.Length; i++)
+                                {
+                                    if (IM.Slots[i] == DI.KeyName)
+                                    {
+                                        IM.RemoveSlotItem(i);
+                                        foundKey = true;
+                                        break;
+                                    }
+                                }
+                            }
+                                if (foundKey){
+                                    DI.isLocked = false;
+                                    photonView.RPC(nameof(SetLockState), RpcTarget.OthersBuffered, doorview.ViewID, false);
+                                    StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
+                                }
+                                else if (!foundKey)
+                                {
+                                    StartCoroutine(hudText.SetHud("The Door is Locked..\nRequires " + DI.KeyName, Color.red));
+                                }
                         }
                         else
                         {
                             StartCoroutine(Door(DI, doorview.ViewID));
                         }
                     }
+                    // Light Switch Logic
                     if (hit.collider.gameObject.CompareTag("LightSwitch")&& !LightCooldown)
                     {
                         LightCooldown = true;
@@ -76,6 +91,7 @@ public class Interactions : MonoBehaviourPun
                         if (lightview.Owner != PhotonNetwork.LocalPlayer) { lightview.RequestOwnership(); }
                         StartCoroutine(LightSwitchToggle(LI, lightview.ViewID));
                     }
+                    // Static Door Logic
                     if (hit.collider.gameObject.CompareTag("StaticDoor") && !StaticDoorCooldown)
                     {
                         PhotonView sdoorview = hit.collider.gameObject.GetComponent<PhotonView>();
@@ -83,6 +99,7 @@ public class Interactions : MonoBehaviourPun
                         if (sdoorview.Owner != PhotonNetwork.LocalPlayer) { sdoorview.RequestOwnership(); }
                         StartCoroutine(StaticDoor(SDI, sdoorview.ViewID));
                     }
+                    // Safe Logic
                     if (hit.collider.gameObject.CompareTag("Safe"))
                     { 
                         Safe safe = hit.collider.transform.root.GetComponent<Safe>();
@@ -98,6 +115,7 @@ public class Interactions : MonoBehaviourPun
                             StartCoroutine(StaticDoor(SDI, sview.ViewID));
                         }
                     }
+                    // Drawer Logic
                     if (hit.collider.gameObject.CompareTag("Drawer") && !DrawerCooldown)
                     {
                         PhotonView drawerview = hit.collider.gameObject.GetComponent<PhotonView>();
@@ -109,6 +127,7 @@ public class Interactions : MonoBehaviourPun
             }
         }
     }
+    // Drawer Logic TO
     public IEnumerator Drawer(DrawerInfo info, int viewid)
     {
         DrawerCooldown = true;
@@ -142,6 +161,7 @@ public class Interactions : MonoBehaviourPun
         photonView.RPC(nameof(SetDrawerState), RpcTarget.OthersBuffered, viewid, info.isOpen);
         DrawerCooldown = false;
     }
+    // Static Door TO
     public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
     {
         StaticDoorCooldown = true;
@@ -175,6 +195,7 @@ public class Interactions : MonoBehaviourPun
         photonView.RPC(nameof(SetStaticDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
         StaticDoorCooldown = false;
     }
+    // Light Switch Logic TO
     IEnumerator LightSwitchToggle(LightInfo info, int viewid)
     {
         if (!info.isLocked)
@@ -192,7 +213,7 @@ public class Interactions : MonoBehaviourPun
 
         LightCooldown = false;
     }
-
+    // Normal Door Logic TO
     IEnumerator Door(DoorInfo info, int viewid)
     {
         DoorCooldown = true;
@@ -235,14 +256,14 @@ public class Interactions : MonoBehaviourPun
             info.transform.localRotation = newRot;
         }
 
-        // Call SetDoorState RPC to synchronize door state across all clients
-
         photonView.RPC(nameof(SetDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
 
         yield return new WaitForSeconds(0.2f);
 
         DoorCooldown = false;
     }
+
+    // RPCS for Networking Door States.
 
     [PunRPC]
     public void SetDoorState(int viewid, bool isOpen)

@@ -51,7 +51,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
         m_Texture: {fileID: 2800000, guid: ddff539741e8fee4b9f65ffb6b53a436, type: 3}
-        m_Scale: {x: 55, y: 55}
+        m_Scale: {x: 15, y: 15}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
         m_Texture: {fileID: 2800000, guid: ddff539741e8fee4b9f65ffb6b53a436, type: 3}
@@ -111,7 +111,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: ddff539741e8fee4b9f65ffb6b53a436, type: 3}
-        m_Scale: {x: 55, y: 55}
+        m_Scale: {x: 15, y: 15}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
         m_Texture: {fileID: 2800000, guid: 5ab1f733e7ef0d245b96cf8cfb7fadf5, type: 3}
@@ -241,14 +241,14 @@ Material:
     - _HeightPoMAmplitude: 2
     - _HeightTessAmplitude: 0
     - _HeightTessCenter: 0.5
-    - _InvTilingScale: 0.018181818
+    - _InvTilingScale: 0.06666667
     - _Ior: 1.5
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metallic: 0
-    - _MetallicRemapMax: 1
+    - _MetallicRemapMax: 0.49428636
     - _MetallicRemapMin: 0
     - _Mode: 0
     - _NormalMapSpace: 0
