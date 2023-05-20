@@ -67,7 +67,7 @@ public class FootstepManager : MonoBehaviourPun
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.Play();
 
-        photonView.RPC("SyncFootsteps", RpcTarget.Others, surfaceType, randomIndex, photonView.ViewID, prone, crouching, walking, running);
+        photonView.RPC(nameof(SyncFootsteps), RpcTarget.Others, surfaceType, randomIndex, photonView.ViewID, prone, crouching, walking, running);
     }
 
     [PunRPC]

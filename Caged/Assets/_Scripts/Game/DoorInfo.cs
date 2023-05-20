@@ -5,8 +5,8 @@ using Photon.Pun;
 public class DoorInfo : MonoBehaviourPun
 {
     private AudioSource audioSource;
-    public AudioClip openClip;
-    public AudioClip closeClip;
+    public AudioClip[] openClips;
+    public AudioClip[] closeClips;
     public bool isOpen;
     public bool Z;
     public string KeyName;
@@ -25,24 +25,19 @@ public class DoorInfo : MonoBehaviourPun
     {
         if (!photonView.IsMine)
             return;
-
-        photonView.RPC(nameof(PlayDoorSound), RpcTarget.All, i, photonView.ViewID);
+        photonView.RPC(nameof(PlayDoorSound), RpcTarget.AllViaServer, i, photonView.ViewID);
     }
 
     [PunRPC]
-    public void PlayDoorSound(bool i, int viewid)
+    public void PlayDoorSound(bool isopen, int viewid)
     {
-        PhotonView view = PhotonView.Find(viewid);
-        DoorInfo DI = view.gameObject.GetComponent<DoorInfo>();
-        DI.audioSource.pitch = Random.Range(0.9f, 1.1f);
-        if (i)
-        {
-            DI.audioSource.clip = DI.openClip;
-        }
-        else
-        {
-            DI.audioSource.clip = DI.closeClip;
-        }
-        DI.audioSource.Play();
+        DoorInfo info = PhotonView.Find(viewid).gameObject.GetComponent<DoorInfo>();
+        info.audioSource.pitch = Random.Range(0.8f, 1.2f);
+        info.audioSource.volume = Random.Range(0.25f, 0.5f);
+        if (isopen) { 
+            info.audioSource.clip = info.openClips[Random.Range(0, info.openClips.Length)]; }
+        else { 
+            info.audioSource.clip = info.closeClips[Random.Range(0, info.closeClips.Length)]; }
+        info.audioSource.Play();
     }
 }

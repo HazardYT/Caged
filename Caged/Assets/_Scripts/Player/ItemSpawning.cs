@@ -6,32 +6,38 @@ using System.Collections.Generic;
 public class ItemSpawning : MonoBehaviourPun
 {
     [Header("Spawn Points")]
-    public Transform[] frontdoorKeySpawn;
-    public Transform[] meatSpawnPoints;
-    public Transform[] junkSpawnPoints;
-    public Transform[] RoomKeySpawnPoints;
-    public Transform[] JailKeySpawnPoints;
-    public Transform[] CellarKeySpawnPoints;
-    public Transform[] CageKeySpawnPoints;
-    [Header("Valueables Spawn Points")]
-    public Transform[] valueablesSpawnPoints;
+    public List<Transform> frontdoorKeySpawnPoints = new List<Transform>();
+    public List<Transform> meatSpawnPoints = new List<Transform>();
+    public List<Transform> junkSpawnPoints = new List<Transform>();
+    public List<Transform> RoomKeySpawnPoints = new List<Transform>();
+    public List<Transform> JailKeySpawnPoints = new List<Transform>();
+    public List<Transform> CellarKeySpawnPoints = new List<Transform>();
+    public List<Transform> CageKeySpawnPoints = new List<Transform>();
+    [Header("Valueables")]
+    public List<Transform> ValueablesSpawnPoints = new List<Transform>();
 
     public void Start()
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            SpawnGameItems();
+            StartCoroutine(SpawnGameItems());
         }
     }
 
-    public void SpawnGameItems()
+    public IEnumerator SpawnGameItems()
     {
-        StartCoroutine(SpawnItem("Room Key", 1, frontdoorKeySpawn));
-        StartCoroutine(SpawnItem("Room Key", 1, RoomKeySpawnPoints));
-        StartCoroutine(SpawnItem("Jail Key", 1, JailKeySpawnPoints));
-        StartCoroutine(SpawnItem("Meat", 2, meatSpawnPoints));
-        StartCoroutine(SpawnItem("Coke Can", 5, junkSpawnPoints));
-        StartCoroutine(SpawnItem("Battery", 5, junkSpawnPoints));
+        yield return new WaitForSeconds(0.1f);
+        SpawnItem("Room Key", 1, frontdoorKeySpawnPoints);
+        yield return new WaitForEndOfFrame();
+        SpawnItem("Room Key", 1, RoomKeySpawnPoints);
+        yield return new WaitForEndOfFrame();
+        SpawnItem("Jail Key", 1, JailKeySpawnPoints);
+        yield return new WaitForEndOfFrame();
+        SpawnItem("Meat", 2, meatSpawnPoints);
+        yield return new WaitForEndOfFrame();
+        SpawnItem("Coke Can", 5, junkSpawnPoints);
+        yield return new WaitForEndOfFrame();
+        SpawnItem("Battery", 5, junkSpawnPoints);
         // Add more items to spawn here
     }
 
@@ -41,63 +47,48 @@ public class ItemSpawning : MonoBehaviourPun
         {
             if (Input.GetKeyDown(KeyCode.Alpha5))
             {
-                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[0], 1, junkSpawnPoints));
+                SpawnItem(ItemManager.instance.ItemNames[0], 1, junkSpawnPoints);
             }
             if (Input.GetKeyDown(KeyCode.Alpha6))
             {
-                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[1], 1, meatSpawnPoints));
+                SpawnItem(ItemManager.instance.ItemNames[1], 1, meatSpawnPoints);
             }
             if (Input.GetKeyDown(KeyCode.Alpha7))
             {
-                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[2], 1, RoomKeySpawnPoints));
+                SpawnItem(ItemManager.instance.ItemNames[2], 1, RoomKeySpawnPoints);
             }
             if (Input.GetKeyDown(KeyCode.Alpha8))
             {
-                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[3], 1, JailKeySpawnPoints));
+                SpawnItem(ItemManager.instance.ItemNames[3], 1, JailKeySpawnPoints);
             }
             if (Input.GetKeyDown(KeyCode.Alpha9))
             {
-                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[4], 1, CellarKeySpawnPoints));
+                SpawnItem(ItemManager.instance.ItemNames[4], 1, CellarKeySpawnPoints);
             }
             if (Input.GetKeyDown(KeyCode.Alpha0))
             {
-                StartCoroutine(SpawnItem(ItemManager.instance.ItemNames[5], 1, CageKeySpawnPoints));
+                SpawnItem(ItemManager.instance.ItemNames[5], 1, CageKeySpawnPoints);
             }
         }
     }
-    public IEnumerator SpawnItem(string itemName, int amount, Transform[] spawnPoints)
+    public void SpawnItem(string itemName, int amount, List<Transform> spawnPoints)
     {
-        List<Transform> availableSpawnPoints = new List<Transform>(spawnPoints);
-
         for (int i = 0; i < amount; i++)
         {
-            if (availableSpawnPoints.Count == 0)
-            {
-                Debug.LogWarning("No more available spawn points for " + itemName);
-                break;
-            }
-
-            int randomIndex = Random.Range(0, availableSpawnPoints.Count);
-            Transform randomSpawnPoint = availableSpawnPoints[randomIndex];
-
-            GameObject spawnObject = PhotonNetwork.Instantiate("Items/" + itemName, randomSpawnPoint.position, randomSpawnPoint.rotation);
-            photonView.RPC(nameof(SetNameRPC), RpcTarget.AllBuffered, spawnObject.GetComponent<PhotonView>().ViewID, itemName);
-
-            availableSpawnPoints.RemoveAt(randomIndex);
-
-            yield return new WaitForEndOfFrame();
+            int r = Random.Range(0, spawnPoints.Count);
+            GameObject spawnObject = PhotonNetwork.Instantiate("Items/" + itemName, spawnPoints[r].position, spawnPoints[r].rotation);
+            photonView.RPC(nameof(SetNameRPC), RpcTarget.AllBufferedViaServer, spawnObject.GetComponent<PhotonView>().ViewID, itemName);
         }
     }
 
-    public IEnumerator SpawnValuable(string itemName, int amount, int spawnpoint)
+    public void SpawnValuable(string itemName, int amount, List<Transform> spawnpoints)
     {
         for (int i = 0; i < amount; i++)
         {
-            GameObject spawnObject = PhotonNetwork.Instantiate("Items/" + itemName, valueablesSpawnPoints[spawnpoint].position, valueablesSpawnPoints[spawnpoint].rotation);
-            photonView.RPC(nameof(SetNameRPC), RpcTarget.AllBuffered, spawnObject.GetComponent<PhotonView>().ViewID, itemName);
-            yield return new WaitForEndOfFrame();
+            int r = Random.Range(0, spawnpoints.Count);
+            GameObject spawnObject = PhotonNetwork.Instantiate("Items/" + itemName, spawnpoints[r].position, spawnpoints[r].rotation);
+            photonView.RPC(nameof(SetNameRPC), RpcTarget.AllBufferedViaServer, spawnObject.GetComponent<PhotonView>().ViewID, itemName);
         }
-        
     }
     [PunRPC]
     void SetNameRPC(int viewID, string name)

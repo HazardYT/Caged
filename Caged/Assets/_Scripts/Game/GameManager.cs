@@ -15,10 +15,8 @@ public class GameManager : MonoBehaviourPun, IPunObservable
 
     public void Update()
     {
-        if (timerOn && PhotonNetwork.IsMasterClient)
-        {
+        if (!timerOn && !PhotonNetwork.IsMasterClient) { return; }
             Timer();
-        }
     }
 
     public void Timer()

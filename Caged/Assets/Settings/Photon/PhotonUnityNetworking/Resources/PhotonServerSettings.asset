@@ -116,6 +116,9 @@ MonoBehaviour:
   - AddMoneyToManager
   - SetDrawerState
   - RPCValueablesSound
+  - SetStaticLockState
+  - PlayStaticDoorSound
+  - PlayLightSwitchSound
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

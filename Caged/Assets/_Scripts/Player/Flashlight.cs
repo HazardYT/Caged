@@ -18,19 +18,19 @@ public class Flashlight : MonoBehaviourPun
         photonView.RPC(nameof(DefaultState), RpcTarget.All, photonView.ViewID);
         photonView.RPC(nameof(PlaySound), RpcTarget.All, photonView.ViewID, 1);
     }
+    public void ToggleFlashLight(){
+        isOn = !isOn;
+        photonView.RPC(nameof(FlashLightToggle), RpcTarget.All, photonView.ViewID, isOn);
+        photonView.RPC(nameof(PlaySound), RpcTarget.All, photonView.ViewID, 0);
+    }
     public void Update()
     {
         if (!photonView.IsMine)
             return;
         BatteryDrain();
-        if (UserInput.instance.FlashlightTogglePressed)
+        if (UserInput.instance.FlashlightTogglePressed && BatteryPercentage > 0)
         {
-            if (BatteryPercentage > 0)
-            {
-            isOn = !isOn;
-            photonView.RPC(nameof(FlashLightToggle), RpcTarget.All, photonView.ViewID, isOn);
-            photonView.RPC(nameof(PlaySound), RpcTarget.All, photonView.ViewID, 0);
-            }
+            ToggleFlashLight();
         }
         if (UserInput.instance.UsePressed)
         {
@@ -138,10 +138,9 @@ public class Flashlight : MonoBehaviourPun
     [PunRPC]
     public void PlaySound(int viewid, int i)
     {
-        Debug.Log("playing");
         PhotonView view = PhotonView.Find(viewid);
-        AudioSource aud = view.gameObject.GetComponent<Flashlight>().audioSource;
-        aud.clip = clips[i];
-        aud.Play();
+        Flashlight aud = view.gameObject.GetComponent<Flashlight>();
+        aud.audioSource.clip = clips[i];
+        aud.audioSource.Play();
     }
 }

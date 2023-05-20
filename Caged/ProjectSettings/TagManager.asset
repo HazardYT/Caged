@@ -19,6 +19,7 @@ TagManager:
   - Safe
   - Drawer
   - ValueableSpawn
+  - CageDoor
   layers:
   - Default
   - TransparentFX

@@ -83,21 +83,52 @@ public class Interactions : MonoBehaviourPun
                         }
                     }
                     // Light Switch Logic
-                    if (hit.collider.gameObject.CompareTag("LightSwitch")&& !LightCooldown)
+                    if (hit.collider.gameObject.CompareTag("LightSwitch") && !LightCooldown)
                     {
                         LightCooldown = true;
-                        PhotonView lightview = hit.collider.gameObject.GetComponent<PhotonView>();
-                        LightInfo LI = lightview.gameObject.GetComponent<LightInfo>();
+                        PhotonView lightview = hit.collider.gameObject.GetComponentInChildren<PhotonView>();
+                        LightInfo LI = lightview.gameObject.GetComponentInChildren<LightInfo>();
                         if (lightview.Owner != PhotonNetwork.LocalPlayer) { lightview.RequestOwnership(); }
-                        StartCoroutine(LightSwitchToggle(LI, lightview.ViewID));
+                        LightSwitchToggle(LI, lightview.ViewID);
                     }
                     // Static Door Logic
-                    if (hit.collider.gameObject.CompareTag("StaticDoor") && !StaticDoorCooldown)
+                    if (hit.collider.gameObject.CompareTag("StaticDoor") || hit.collider.gameObject.CompareTag("CageDoor") && !StaticDoorCooldown)
                     {
                         PhotonView sdoorview = hit.collider.gameObject.GetComponent<PhotonView>();
                         StaticDoorInfo SDI = sdoorview.gameObject.GetComponent<StaticDoorInfo>();
+                        InventoryManager IM = photonView.gameObject.GetComponent<InventoryManager>();
                         if (sdoorview.Owner != PhotonNetwork.LocalPlayer) { sdoorview.RequestOwnership(); }
-                        StartCoroutine(StaticDoor(SDI, sdoorview.ViewID));
+                        if (SDI.isLocked){
+                            bool foundKey = false;
+                            if (IM.Equipped.childCount > 0 && IM.Equipped.GetChild(0).name == SDI.KeyName){
+                                IM.RemoveEquippedItem();
+                                foundKey = true;
+                            }
+                            else{
+                                for (int i = 0; i < IM.Slots.Length; i++)
+                                {
+                                    if (IM.Slots[i] == SDI.KeyName)
+                                    {
+                                        IM.RemoveSlotItem(i);
+                                        foundKey = true;
+                                        break;
+                                    }
+                                }
+                            }
+                                if (foundKey){
+                                    SDI.isLocked = false;
+                                    photonView.RPC(nameof(SetStaticLockState), RpcTarget.OthersBuffered, sdoorview.ViewID, false);
+                                    StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
+                                }
+                                else if (!foundKey)
+                                {
+                                    StartCoroutine(hudText.SetHud("The Door is Locked..\nRequires " + SDI.KeyName, Color.red));
+                                }
+                        }
+                        else
+                        {
+                            StartCoroutine(StaticDoor(SDI, sdoorview.ViewID));
+                        }
                     }
                     // Safe Logic
                     if (hit.collider.gameObject.CompareTag("Safe"))
@@ -168,11 +199,13 @@ public class Interactions : MonoBehaviourPun
         if (!info.isOpen)
         {
             info.isOpen = true;
+            info.StaticDoorSound(true);
             info.gameObject.GetComponent<NavMeshObstacle>().carving = true;
             float elapsedTime = 0f;
-            while (elapsedTime < 0.4f)
+            float timeToRotate = info._speedFactor;
+            while (elapsedTime < timeToRotate)
             {
-                info.transform.localRotation = Quaternion.Slerp(info.OgRot, info.OpenRot, elapsedTime / 0.4f);
+                info.transform.localRotation = Quaternion.Slerp(info.OgRot, info.OpenRot, elapsedTime / timeToRotate);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
@@ -181,8 +214,9 @@ public class Interactions : MonoBehaviourPun
         else
         {
             info.isOpen = false;
+            info.StaticDoorSound(false);
             info.gameObject.GetComponent<NavMeshObstacle>().carving = false;
-            float duration = 0.4f;
+            float duration = info._speedFactor;
             float elapsedTime = 0f;
             while (elapsedTime < duration)
             {
@@ -196,20 +230,22 @@ public class Interactions : MonoBehaviourPun
         StaticDoorCooldown = false;
     }
     // Light Switch Logic TO
-    IEnumerator LightSwitchToggle(LightInfo info, int viewid)
+    public void LightSwitchToggle(LightInfo info, int viewid)
     {
         if (!info.isLocked)
         {
-            if (info.isOn)
-            {
+            Vector3 euler = info._lightSwitch.localRotation.eulerAngles;
+            if (info.isOn){
                 info.isOn = false;
-            }
-            else info.isOn = true;
+                info._lightSwitch.transform.localRotation = Quaternion.Euler(new Vector3(0f, euler.y, euler.z)); }
+            else{ 
+                info.isOn = true;
+                info._lightSwitch.transform.localRotation = Quaternion.Euler(new Vector3(-60f, euler.y, euler.z)); }
+            info.LightSwitchSound(info.isOn);
         }
         else StartCoroutine(hudText.SetHud("Power is Off!", Color.red));
 
         photonView.RPC(nameof(ToggleLightRPC), RpcTarget.AllBuffered, viewid, info.isOn);
-        yield return new WaitForSeconds(0.05f);
 
         LightCooldown = false;
     }
@@ -262,9 +298,7 @@ public class Interactions : MonoBehaviourPun
 
         DoorCooldown = false;
     }
-
-    // RPCS for Networking Door States.
-
+    // RPCS for Networking States.
     [PunRPC]
     public void SetDoorState(int viewid, bool isOpen)
     {
@@ -282,7 +316,7 @@ public class Interactions : MonoBehaviourPun
         info.gameObject.GetComponent<NavMeshObstacle>().carving = isOpen;
     }
     [PunRPC]
-    void SetDrawerState(int viewid, bool isOpen)
+    public void SetDrawerState(int viewid, bool isOpen)
     {
         PhotonView view = PhotonView.Find(viewid);
         DrawerInfo info = view.transform.GetComponent<DrawerInfo>();
@@ -290,10 +324,16 @@ public class Interactions : MonoBehaviourPun
         info.gameObject.GetComponent<NavMeshObstacle>().carving = isOpen;
     }
     [PunRPC]
-    void SetLockState(int viewid, bool i)
+    public void SetLockState(int viewid, bool i)
     {
         PhotonView view = PhotonView.Find(viewid);
         view.GetComponent<DoorInfo>().isLocked = i;
+    }
+    [PunRPC]
+    public void SetStaticLockState(int viewid, bool i)
+    {
+        PhotonView view = PhotonView.Find(viewid);
+        view.GetComponent<StaticDoorInfo>().isLocked = i;
     }
     [PunRPC]
     public void ToggleLightRPC(int viewid, bool i)
@@ -301,7 +341,10 @@ public class Interactions : MonoBehaviourPun
         PhotonView view = PhotonView.Find(viewid);
         LightInfo LI = view.transform.GetComponent<LightInfo>();
         LI.isOn = i;
-        LI.lightSwitch.gameObject.SetActive(i);
+        LI.Light.gameObject.SetActive(i);
+        if (i){
+            LI.Light.GetComponentInParent<MeshRenderer>().material = LI.onMat;
+        } else { LI.Light.GetComponentInParent<MeshRenderer>().material = LI.offMat; }
     }
     [PunRPC]
     public void RPCValueablesSound(int viewid){
