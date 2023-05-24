@@ -18,7 +18,7 @@ public class StaticDoorInfo : MonoBehaviourPun
     public List<AudioClip> closeClips = new List<AudioClip>();
     public void Awake()
     {
-        audioSource = gameObject.GetComponent<AudioSource>();
+        audioSource = gameObject.GetComponent<AudioSource>();   
         if (!_Zaxis){
         Vector3 euler = transform.localRotation.eulerAngles;
         OpenRot = Quaternion.Euler(new Vector3(euler.x, rotation, euler.z));

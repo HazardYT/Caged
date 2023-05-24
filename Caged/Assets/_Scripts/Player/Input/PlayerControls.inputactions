@@ -78,7 +78,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "FlashlightMode",
+                    "name": "FlashlightZoom",
                     "type": "Button",
                     "id": "c0f1ded8-2d7c-476e-9b49-23b1d7e8176b",
                     "expectedControlType": "Button",
@@ -405,7 +405,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
-                    "action": "FlashlightMode",
+                    "action": "FlashlightZoom",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -416,7 +416,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard",
-                    "action": "FlashlightMode",
+                    "action": "FlashlightZoom",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

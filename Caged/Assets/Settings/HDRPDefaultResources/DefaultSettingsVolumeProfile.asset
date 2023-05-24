@@ -166,7 +166,7 @@ MonoBehaviour:
     m_Value: 0
   exposure:
     m_OverrideState: 1
-    m_Value: -2.4
+    m_Value: -1.94
   multiplier:
     m_OverrideState: 0
     m_Value: 1
@@ -355,7 +355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1be1b6c95cd2e41b27903b9270817f, type: 3}
   m_Name: Vignette
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   mode:
     m_OverrideState: 1
     m_Value: 0
@@ -367,7 +367,7 @@ MonoBehaviour:
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.158
+    m_Value: 0.106
   smoothness:
     m_OverrideState: 1
     m_Value: 0.359
@@ -417,7 +417,7 @@ MonoBehaviour:
   active: 1
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   meteringMode:
     m_OverrideState: 0
     m_Value: 2
@@ -425,8 +425,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   fixedExposure:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: -2
   compensation:
     m_OverrideState: 0
     m_Value: 0
@@ -574,13 +574,13 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 1.616
+    m_Value: 4
   directLightingStrength:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.737
   radius:
     m_OverrideState: 1
-    m_Value: 1.653
+    m_Value: 1.04
   spatialBilateralAggressiveness:
     m_OverrideState: 1
     m_Value: 0.15
@@ -609,13 +609,13 @@ MonoBehaviour:
     m_Value: 1
   m_StepCount:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 15
   m_FullResolution:
     m_OverrideState: 1
     m_Value: 0
   m_MaximumRadiusInPixels:
     m_OverrideState: 1
-    m_Value: 40
+    m_Value: 69
   m_BilateralUpsample:
     m_OverrideState: 0
     m_Value: 1

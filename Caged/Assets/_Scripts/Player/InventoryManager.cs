@@ -249,6 +249,27 @@ public class InventoryManager : MonoBehaviourPun
             } 
         }
     }
+    public void DropAllItems(){
+        for (int i = 0; i < InventorySlotCount; i++)
+        {
+            if (Slots[i] != null){ DropItem(i);}
+        }
+        if (Equipped.childCount != 0) {        
+            string itemname = Equipped.GetChild(0).name;
+        PhotonNetwork.Destroy(Equipped.GetChild(0).gameObject);
+        GameObject obj = PhotonNetwork.Instantiate("Items/" + itemname, transform.position, Quaternion.identity);
+        photonView.RPC(nameof(ItemSettingsRPC),RpcTarget.AllViaServer, obj.GetComponent<PhotonView>().ViewID, itemname);
+        }
+    }
+    public void DropItem(int i){
+        if (Slots[i] != null){
+        string itemname = Slots[i];
+        Slots[i] = null;
+        SlotImage[i].enabled = false;
+        ItemCount--;
+        PhotonNetwork.Instantiate("Items/" + itemname, transform.position, Quaternion.identity);
+        }
+    }
     public void RemoveEquippedItem()
     {
         PhotonNetwork.Destroy(Equipped.GetChild(0).gameObject);
@@ -349,7 +370,7 @@ public class InventoryManager : MonoBehaviourPun
         Slots[CurrentSlot] = null;
         SlotImage[CurrentSlot].enabled = false;
         equippedslot[CurrentSlot].enabled = false;
-        photonView.RPC(nameof(ThrowRPC), RpcTarget.OthersBuffered, obj.GetComponent<PhotonView>().ViewID, name);
+        photonView.RPC(nameof(ItemSettingsRPC), RpcTarget.OthersBuffered, obj.GetComponent<PhotonView>().ViewID, name);
         ItemCount--;
     }
     public string FindArrayNumber(string T)
@@ -365,7 +386,7 @@ public class InventoryManager : MonoBehaviourPun
     }
 
     [PunRPC]
-    public void ThrowRPC(int viewid, string name)
+    public void ItemSettingsRPC(int viewid, string name)
     {
         PhotonView view = PhotonView.Find(viewid);
         view.gameObject.name = name;

@@ -1,6 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
-
+using System.Collections.Generic;
 public enum SurfaceType
 {
     Default,
@@ -13,10 +13,10 @@ public enum SurfaceType
 public class FootstepManager : MonoBehaviourPun
 {
     public AudioSource audioSource;
-    public AudioClip[] grassFootsteps;
-    public AudioClip[] woodFootsteps;
-    public AudioClip[] cementFootsteps;
-    public AudioClip[] ventFootsteps;
+    public List<AudioClip>  grassFootsteps = new List<AudioClip>();
+    public List<AudioClip>  woodFootsteps = new List<AudioClip>();
+    public List<AudioClip>  cementFootsteps = new List<AudioClip>();
+    public List<AudioClip>  ventFootsteps = new List<AudioClip>();
 
     public float proneVolume = 0.05f;
     public float crouchVolume = 0.1f;
@@ -25,7 +25,7 @@ public class FootstepManager : MonoBehaviourPun
 
     public void PlayFootstep(SurfaceType surfaceType, bool prone, bool crouching, bool walking, bool running)
     {
-        AudioClip[] footstepSounds;
+        List<AudioClip> footstepSounds = new List<AudioClip>();
 
         switch (surfaceType)
         {
@@ -46,7 +46,7 @@ public class FootstepManager : MonoBehaviourPun
                 break;
         }
 
-        int randomIndex = Random.Range(0, footstepSounds.Length);
+        int randomIndex = Random.Range(0, footstepSounds.Count);
         audioSource.clip = footstepSounds[randomIndex];
         if (prone)
         {
@@ -67,15 +67,15 @@ public class FootstepManager : MonoBehaviourPun
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.Play();
 
-        photonView.RPC(nameof(SyncFootsteps), RpcTarget.Others, surfaceType, randomIndex, photonView.ViewID, prone, crouching, walking, running);
+        photonView.RPC(nameof(SyncFootsteps), RpcTarget.Others, surfaceType, randomIndex, photonView.ViewID, audioSource.volume);
     }
 
     [PunRPC]
-    public void SyncFootsteps(SurfaceType surfaceType, int clipIndex, int viewid, bool prone, bool crouching, bool walking, bool running)
+    public void SyncFootsteps(SurfaceType surfaceType, int clipIndex, int viewid, float volume)
     {
         PhotonView view = PhotonView.Find(viewid);
         AudioSource audioSource = view.gameObject.GetComponent<FootstepManager>().audioSource;
-        AudioClip[] footstepSounds;
+        List<AudioClip> footstepSounds = new List<AudioClip>();
 
         switch (surfaceType)
         {
@@ -94,23 +94,7 @@ public class FootstepManager : MonoBehaviourPun
         }
 
         audioSource.clip = footstepSounds[clipIndex];
-
-        if (prone)
-        {
-            audioSource.volume = proneVolume;
-        }
-        else if (crouching)
-        {
-            audioSource.volume = crouchVolume;
-        }
-        else if (walking)
-        {
-            audioSource.volume = walkingVolume;
-        }
-        else if (running)
-        {
-            audioSource.volume = runningVolume;
-        }
+        audioSource.volume = volume;
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.Play();
     }

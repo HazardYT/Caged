@@ -155,7 +155,7 @@ public class Safe : MonoBehaviourPun
             {
                 sview.RequestOwnership();
             }
-            StartCoroutine(interactions.StaticDoor(SDI, sview.ViewID));
+            StartCoroutine(interactions.StaticDoor(SDI, sview.ViewID, false));
             photonView.RPC(nameof(LockState), RpcTarget.AllBuffered, doorView.ViewID, false);
             ExitSafe();
             Debug.Log("Correct Code");

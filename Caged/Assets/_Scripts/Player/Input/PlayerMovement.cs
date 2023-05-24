@@ -39,10 +39,6 @@ public class PlayerMovement : MonoBehaviourPun
     public float proneSpeed = 1.25f;
     public float crouchSpeed = 2f;
     public float gravity = 9.81f;
-    public float walkingFootstepDistance = 10f;
-    public float runningFootstepDistance = 5;
-    public float crouchingFootstepDistance = 12;
-    public float proneFootstepDistance = 16f;
     private float _footstepDistanceCounter;
     public float stamina = 100f;
     private float StaminaRegenTimer = 0.0f;
@@ -55,13 +51,15 @@ public class PlayerMovement : MonoBehaviourPun
         if (!photonView.IsMine) { 
             playerCam.GetComponent<AudioListener>().enabled = false; 
             playerCam.GetComponent<Camera>().enabled = false; 
+            canvas.enabled = false;
             return; }
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         canvas.gameObject.SetActive(true);
-        playerbody.gameObject.SetActive(false);
+        playerbody.gameObject.GetComponent<SkinnedMeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
         headlight.gameObject.SetActive(false);
         capsuleCollider = GetComponent<CapsuleCollider>();
+
     }
     public void Update()
     {
@@ -129,9 +127,22 @@ public class PlayerMovement : MonoBehaviourPun
         }
         movement.y = verticalVelocity;
         controller.Move(movement * speed * Time.deltaTime);
+        FootSteps(speed);
         Animation(isRunning);
         Stamina(isRunning);
         Crouch(isCrouching, isProne, speed);
+    }
+    public void FootSteps(float speed){
+        if (controller.isGrounded && (controller.velocity != Vector3.zero))
+        {
+            _footstepDistanceCounter += speed * Time.fixedDeltaTime;
+            if (_footstepDistanceCounter >= 3)
+            {
+                _footstepDistanceCounter = 0;
+                SurfaceType surfaceType = DetectSurfaceType();
+                footstepManager.PlayFootstep(surfaceType, _isprone, _crouching, _walking, _running);
+            }
+        }
     }
     public void Crouch(bool isCrouching, bool isProne, float speed)
     {
@@ -178,29 +189,6 @@ public class PlayerMovement : MonoBehaviourPun
                 capsuleCollider.center = new Vector3(0, 0, 0);
                 Crouching = false;
                 Prone = false;
-            }
-        }
-        if (controller.isGrounded && (_walking || _running))
-        {
-            float footstepDistance;
-            if (_isprone)
-            {
-                footstepDistance = proneFootstepDistance;
-            }
-            else if (_crouching)
-            {
-                footstepDistance = crouchingFootstepDistance;
-            }
-            else
-            {
-                footstepDistance = _walking ? walkingFootstepDistance : runningFootstepDistance;
-            }
-            _footstepDistanceCounter += speed /2 * Time.fixedDeltaTime;
-            if (_footstepDistanceCounter >= footstepDistance)
-            {
-                _footstepDistanceCounter = 0;
-                SurfaceType surfaceType = DetectSurfaceType();
-                footstepManager.PlayFootstep(surfaceType, _isprone, _crouching, _walking, _running);
             }
         }
     }

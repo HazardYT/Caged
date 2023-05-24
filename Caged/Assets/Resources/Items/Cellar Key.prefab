@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 4303308906869019101}
   - component: {fileID: 4038727112470589430}
   - component: {fileID: 5971569754381167669}
+  - component: {fileID: -6040743486083866893}
   m_Layer: 0
   m_Name: Cellar Key
   m_TagString: Item
@@ -317,3 +318,21 @@ MonoBehaviour:
   fresnelScale: 2
   fresnelPower: 2
   alphaThreshold: 0.5
+--- !u!114 &-6040743486083866893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2354993831020024995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e3a180284522ab49840b487561b5998, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mat: {fileID: 5971569754381167669}
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  maxDistance: 10
+  minDistance: 1

@@ -92,13 +92,18 @@ public class DonnyDoorOpener : MonoBehaviourPun
             }
         }
     }
-
-
-    public void LockCage(){
+    public IEnumerator LockCage(){
         photonView.RPC(nameof(SetStaticDoorState), RpcTarget.AllViaServer, CageInfo.gameObject.GetComponent<PhotonView>().ViewID, true);
         if (CageInfo.isOpen){
+            photonView.RPC(nameof(SetCageSpeed), RpcTarget.AllViaServer, 0.4f);
             StartCoroutine(CageDoorClose(CageInfo.GetComponent<PhotonView>().ViewID));
+            yield return new WaitForSeconds(1f);
+            photonView.RPC(nameof(SetCageSpeed), RpcTarget.AllViaServer, 1.6f);
         }
+    }
+    [PunRPC]
+    public void SetCageSpeed(float i){
+        CageInfo._speedFactor = i;
     }
     IEnumerator Door(DoorInfo info, int viewid)
     {
@@ -133,8 +138,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
         StartCoroutine(EnableListeningAfterDelay(2f));
         info.StaticDoorSound(true);
         float elapsedTime = 0f;
-        while (elapsedTime < info._speedFactor)
-        {
+        while (elapsedTime < info._speedFactor){
             info.transform.localRotation = Quaternion.Slerp(info.OgRot, info.OpenRot, elapsedTime / info._speedFactor);
             elapsedTime += Time.deltaTime;
             yield return null;
@@ -151,8 +155,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
         StartCoroutine(EnableListeningAfterDelay(4f));
         CageInfo.StaticDoorSound(true);
         float elapsedTime = 0f;
-        while (elapsedTime < CageInfo._speedFactor)
-        {
+        while (elapsedTime < CageInfo._speedFactor){
             CageInfo.transform.localRotation = Quaternion.Slerp(CageInfo.OpenRot, CageInfo.OgRot, elapsedTime / CageInfo._speedFactor);
             elapsedTime += Time.deltaTime;
             yield return null;

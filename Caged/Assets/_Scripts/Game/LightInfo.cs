@@ -5,6 +5,7 @@ public class LightInfo : MonoBehaviourPun
     public bool isOn;
     public bool isLocked;
     public Transform Light;
+    public Transform Light2;
     public Transform _lightSwitch;
     public Material offMat, onMat;
     [SerializeField] private AudioClip OnClip;
@@ -12,8 +13,7 @@ public class LightInfo : MonoBehaviourPun
     [SerializeField] private AudioSource audioSource;
 
     public void LightSwitchSound(bool i){
-        if (!photonView.IsMine)
-            return;
+        if (!photonView.IsMine) return;
         photonView.RPC(nameof(PlayLightSwitchSound), RpcTarget.AllViaServer, i, photonView.ViewID);
     }
 

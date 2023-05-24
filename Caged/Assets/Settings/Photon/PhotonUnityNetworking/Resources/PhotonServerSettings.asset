@@ -119,6 +119,15 @@ MonoBehaviour:
   - SetStaticLockState
   - PlayStaticDoorSound
   - PlayLightSwitchSound
+  - ParentPlayerToDonny
+  - SetPlayerPosition
+  - CameraChangeLogic
+  - CameraChangeLogicRPC
+  - TogglePowerRPC
+  - PlayButtonSoundRPC
+  - FlashlightZoom
+  - SetCageSpeed
+  - ItemSettingsRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

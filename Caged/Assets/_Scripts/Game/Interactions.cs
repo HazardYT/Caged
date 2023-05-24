@@ -1,13 +1,16 @@
 using UnityEngine;
 using Photon.Pun;
+using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class Interactions : MonoBehaviourPun
 {
     public AudioSource audioSource;
     public AudioClip[] ValueablesPickupClips;
-    public float InteractDistance = 3.5f;
+    public float InteractDistance = 4f;
     private bool DoorCooldown = false;
     private bool StaticDoorCooldown = false;
     private bool DrawerCooldown = false;
@@ -18,8 +21,7 @@ public class Interactions : MonoBehaviourPun
     bool isinteract = true;
 
     // Setting up variables if the view is mine
-    private void Awake()
-    {
+    private void Awake(){
         if (photonView.IsMine) {
             playerCam = gameObject.GetComponent<PlayerMovement>().playerCam;
             hudText = GameObject.FindObjectOfType<HudText>();
@@ -67,15 +69,15 @@ public class Interactions : MonoBehaviourPun
                                     }
                                 }
                             }
-                                if (foundKey){
-                                    DI.isLocked = false;
-                                    photonView.RPC(nameof(SetLockState), RpcTarget.OthersBuffered, doorview.ViewID, false);
-                                    StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
-                                }
-                                else if (!foundKey)
-                                {
-                                    StartCoroutine(hudText.SetHud("The Door is Locked..\nRequires " + DI.KeyName, Color.red));
-                                }
+                            if (foundKey){
+                                DI.isLocked = false;
+                                photonView.RPC(nameof(SetLockState), RpcTarget.OthersBuffered, doorview.ViewID, false);
+                                StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
+                            }
+                            else if (!foundKey)
+                            {
+                                StartCoroutine(hudText.SetHud("The Door is Locked..\nRequires " + DI.KeyName, Color.red));
+                            }
                         }
                         else
                         {
@@ -89,11 +91,13 @@ public class Interactions : MonoBehaviourPun
                         PhotonView lightview = hit.collider.gameObject.GetComponentInChildren<PhotonView>();
                         LightInfo LI = lightview.gameObject.GetComponentInChildren<LightInfo>();
                         if (lightview.Owner != PhotonNetwork.LocalPlayer) { lightview.RequestOwnership(); }
-                        LightSwitchToggle(LI, lightview.ViewID);
+                        StartCoroutine(LightSwitchToggle(LI, lightview.ViewID));
                     }
                     // Static Door Logic
-                    if (hit.collider.gameObject.CompareTag("StaticDoor") || hit.collider.gameObject.CompareTag("CageDoor") && !StaticDoorCooldown)
+                    if (hit.collider.gameObject.CompareTag("StaticDoor") ^ hit.collider.gameObject.CompareTag("CageDoor") && !StaticDoorCooldown)
                     {
+                        bool Cage = false;
+                        if (hit.collider.gameObject.CompareTag("CageDoor")) { Cage = true;}
                         PhotonView sdoorview = hit.collider.gameObject.GetComponent<PhotonView>();
                         StaticDoorInfo SDI = sdoorview.gameObject.GetComponent<StaticDoorInfo>();
                         InventoryManager IM = photonView.gameObject.GetComponent<InventoryManager>();
@@ -116,8 +120,7 @@ public class Interactions : MonoBehaviourPun
                                 }
                             }
                                 if (foundKey){
-                                    SDI.isLocked = false;
-                                    photonView.RPC(nameof(SetStaticLockState), RpcTarget.OthersBuffered, sdoorview.ViewID, false);
+                                    photonView.RPC(nameof(SetStaticLockState), RpcTarget.AllViaServer, sdoorview.ViewID, false);
                                     StartCoroutine(hudText.SetHud("Door is Unlocked!", Color.green));
                                 }
                                 else if (!foundKey)
@@ -127,7 +130,10 @@ public class Interactions : MonoBehaviourPun
                         }
                         else
                         {
-                            StartCoroutine(StaticDoor(SDI, sdoorview.ViewID));
+                            if (Cage)
+                                StartCoroutine(StaticDoor(SDI, sdoorview.ViewID, true));
+                            else 
+                                StartCoroutine(StaticDoor(SDI, sdoorview.ViewID, false));
                         }
                     }
                     // Safe Logic
@@ -143,8 +149,39 @@ public class Interactions : MonoBehaviourPun
                             PhotonView sview = safe.SafeDoor.GetComponent<PhotonView>();
                             StaticDoorInfo SDI = sview.gameObject.GetComponent<StaticDoorInfo>();
                             if (sview.Owner != PhotonNetwork.LocalPlayer) { sview.RequestOwnership(); }
-                            StartCoroutine(StaticDoor(SDI, sview.ViewID));
+                            StartCoroutine(StaticDoor(SDI, sview.ViewID, false));
                         }
+                    }
+                    // SurveillanceMonitor Logic
+                    if (hit.collider.gameObject.CompareTag("SurveillanceMonitor"))
+                    { 
+                        print("CAM Found Monitor");
+                        SurveillanceMonitor monitor = hit.collider.transform.root.GetComponent<SurveillanceMonitor>();
+                        PhotonView view = monitor.GetComponent<PhotonView>();
+                        if (view.Owner != PhotonNetwork.LocalPlayer) { view.RequestOwnership(); }
+                        EventSystem eventSystem = monitor.eventSystem.GetComponent<EventSystem>();
+                        GraphicRaycaster raycaster = monitor.monitorCanvas.GetComponent<GraphicRaycaster>();
+                        monitor.eventSystem.SetActive(true);
+                        monitor.monitorCanvas.worldCamera = playerCam;
+                        PointerEventData pointerEventData = new PointerEventData(eventSystem);
+                        pointerEventData.position = Input.mousePosition;
+                        print("CAM Calling monitor");
+                        // Raycast to find the UI element under the cursor
+                        List<RaycastResult> results = new List<RaycastResult>();
+                        raycaster.Raycast(pointerEventData, results);
+
+                        // Check if a button is found
+                        foreach (RaycastResult result in results){
+                            Debug.Log("CAM found one" + result);
+                            Button button = result.gameObject.GetComponent<Button>();
+                            if (button != null){
+                                // Perform a button click
+                                button.onClick.Invoke();
+                                break; }
+                        }
+                        view.TransferOwnership(0);
+                        monitor.eventSystem.SetActive(false);
+                        monitor.monitorCanvas.worldCamera = null;
                     }
                     // Drawer Logic
                     if (hit.collider.gameObject.CompareTag("Drawer") && !DrawerCooldown)
@@ -193,7 +230,7 @@ public class Interactions : MonoBehaviourPun
         DrawerCooldown = false;
     }
     // Static Door TO
-    public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
+    public IEnumerator StaticDoor(StaticDoorInfo info, int viewid, bool i)
     {
         StaticDoorCooldown = true;
         if (!info.isOpen)
@@ -210,6 +247,7 @@ public class Interactions : MonoBehaviourPun
                 yield return null;
             }
             info.transform.localRotation = info.OpenRot;
+            if (i) { yield return new WaitForSeconds(3f); StartCoroutine(StaticDoor(info, viewid, false)); photonView.RPC(nameof(SetStaticLockState), RpcTarget.AllViaServer, viewid, true); yield break; }
         }
         else
         {
@@ -230,7 +268,7 @@ public class Interactions : MonoBehaviourPun
         StaticDoorCooldown = false;
     }
     // Light Switch Logic TO
-    public void LightSwitchToggle(LightInfo info, int viewid)
+    public IEnumerator LightSwitchToggle(LightInfo info, int viewid)
     {
         if (!info.isLocked)
         {
@@ -246,7 +284,7 @@ public class Interactions : MonoBehaviourPun
         else StartCoroutine(hudText.SetHud("Power is Off!", Color.red));
 
         photonView.RPC(nameof(ToggleLightRPC), RpcTarget.AllBuffered, viewid, info.isOn);
-
+        yield return new WaitForSeconds(0.1f);
         LightCooldown = false;
     }
     // Normal Door Logic TO
@@ -342,9 +380,10 @@ public class Interactions : MonoBehaviourPun
         LightInfo LI = view.transform.GetComponent<LightInfo>();
         LI.isOn = i;
         LI.Light.gameObject.SetActive(i);
+        if (LI.Light2 != null) { LI.Light2.gameObject.SetActive(i);}
         if (i){
-            LI.Light.GetComponentInParent<MeshRenderer>().material = LI.onMat;
-        } else { LI.Light.GetComponentInParent<MeshRenderer>().material = LI.offMat; }
+            LI.Light.GetComponentInParent<MeshRenderer>().material = LI.onMat;     if (LI.Light2 != null) { LI.Light2.GetComponentInParent<MeshRenderer>().material = LI.onMat; }
+        } else { LI.Light.GetComponentInParent<MeshRenderer>().material = LI.offMat;    if (LI.Light2 != null) { LI.Light2.GetComponentInParent<MeshRenderer>().material = LI.offMat; }}
     }
     [PunRPC]
     public void RPCValueablesSound(int viewid){

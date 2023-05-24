@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 4561269254258423638}
   - component: {fileID: 6111112436950141083}
   - component: {fileID: 8781479780765703301}
+  - component: {fileID: 9036281911359420238}
   m_Layer: 0
   m_Name: Meat
   m_TagString: Item
@@ -309,14 +310,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a34dce33c4213c4393266fbcd799d5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  checkRadius: 5
-  checkInterval: 0.5
-  playerLayerMask:
-    serializedVersion: 2
-    m_Bits: 0
   material: {fileID: 2100000, guid: 6e4f26dca34a46d4792b902fc997e631, type: 2}
-  color: {r: 1, g: 0.17461407, b: 0.5454126, a: 1}
+  color: {r: 1, g: 1, b: 1, a: 1}
   mask: {fileID: 0}
   fresnelScale: 2
   fresnelPower: 2
   alphaThreshold: 0.5
+--- !u!114 &9036281911359420238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 739347344449317969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e3a180284522ab49840b487561b5998, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mat: {fileID: 8781479780765703301}
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  maxDistance: 10
+  minDistance: 1

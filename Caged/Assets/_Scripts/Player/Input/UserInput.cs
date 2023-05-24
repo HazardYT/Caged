@@ -18,7 +18,8 @@ public class UserInput : MonoBehaviourPun
     public bool ThrowReleased { get; private set; }
     public bool ThrowHeld { get; private set; }
     public bool FlashlightTogglePressed { get; private set; }
-    public bool FlashlightModePressed { get; private set; }
+    public bool FlashlightZoomHeld { get; private set; }
+    public bool FlashlightZoomReleased {get; private set; }
     public bool RightBumperPressed { get; private set; }
     public bool LeftBumperPressed { get; private set; }
     public bool ExitPressed { get; private set; }
@@ -40,7 +41,7 @@ public class UserInput : MonoBehaviourPun
     [HideInInspector] public InputAction _useAction;
     private InputAction _throwAction;
     private InputAction _flashlightToggleAction;
-    private InputAction _flashlightModeAction;
+    private InputAction _flashlightZoomAction;
     private InputAction _rbumperAction;
     private InputAction _lbumperAction;
     private InputAction _exitAction;
@@ -75,7 +76,7 @@ public class UserInput : MonoBehaviourPun
         _useAction = _playerInput.actions["Use"];
         _throwAction = _playerInput.actions["Throw"];
         _flashlightToggleAction = _playerInput.actions["Flashlight"];
-        _flashlightModeAction = _playerInput.actions["FlashlightMode"];
+        _flashlightZoomAction = _playerInput.actions["FlashlightZoom"];
         _rbumperAction = _playerInput.actions["RightBumper"];
         _lbumperAction = _playerInput.actions["LeftBumper"];
         _exitAction = _playerInput.actions["Exit"];
@@ -102,7 +103,8 @@ public class UserInput : MonoBehaviourPun
         ThrowReleased = _throwAction.WasReleasedThisFrame();
         ThrowHeld = _throwAction.IsPressed();
         FlashlightTogglePressed = _flashlightToggleAction.WasPressedThisFrame();
-        FlashlightModePressed = _flashlightModeAction.WasPressedThisFrame();
+        FlashlightZoomHeld = _flashlightZoomAction.IsPressed();
+        FlashlightZoomReleased = _flashlightZoomAction.WasReleasedThisFrame();
         RightBumperPressed = _rbumperAction.WasPressedThisFrame();
         LeftBumperPressed = _lbumperAction.WasPressedThisFrame();
         ExitPressed = _exitAction.WasPressedThisFrame();

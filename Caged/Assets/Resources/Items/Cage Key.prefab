@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 426979935097012437}
   - component: {fileID: 2318110461275295418}
   - component: {fileID: -4150257570994067959}
+  - component: {fileID: 2515695953785503926}
   m_Layer: 0
   m_Name: Cage Key
   m_TagString: Item
@@ -317,3 +318,21 @@ MonoBehaviour:
   fresnelScale: 2
   fresnelPower: 2
   alphaThreshold: 0.5
+--- !u!114 &2515695953785503926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1393801825461576291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e3a180284522ab49840b487561b5998, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mat: {fileID: -4150257570994067959}
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  maxDistance: 10
+  minDistance: 1

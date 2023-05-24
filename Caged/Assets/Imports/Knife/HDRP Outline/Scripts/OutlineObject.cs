@@ -15,14 +15,8 @@ namespace Knife.HDRPOutline.Core
         /// </summary>
         internal static Action<CommandBuffer, Plane[]> onRender;
 
-        [Tooltip("Radius to check for players")]
-        [SerializeField] private float checkRadius = 5f;
-        [Tooltip("Interval in seconds to check for players")]
-        [SerializeField] private float checkInterval = 0.5f;
-        [Tooltip("Layer mask for players")]
-        [SerializeField] private LayerMask playerLayerMask;
         [Tooltip("Outline material")]
-        [SerializeField] private Material material;
+        [SerializeField] public Material material;
         [Tooltip("Color of outline")]
         [SerializeField] private Color color = Color.white;
         [Tooltip("Alpha or Color mask for outline, BaseColor parameter must be setted to Alpha or Color")]
@@ -133,28 +127,6 @@ namespace Knife.HDRPOutline.Core
         {
             Initialize();
         }
-    /*private void Start()
-    {
-        StartCoroutine(CheckForPlayersCoroutine());
-    }
-
-    private IEnumerator CheckForPlayersCoroutine()
-    {
-        while (true)
-        {
-            CheckForPlayers();
-            yield return new WaitForSeconds(checkInterval);
-        }
-    }
-
-    private void CheckForPlayers()
-    {
-        bool playerInRange = Physics.CheckSphere(transform.position, checkRadius, playerLayerMask);
-        if (playerInRange){
-            EnableOutline();
-        } else {DisableOutline();}
-    }
-*/
         public void Initialize()
         {
             attachedRenderer = GetComponent<Renderer>();

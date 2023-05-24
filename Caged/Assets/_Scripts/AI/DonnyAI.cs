@@ -53,18 +53,16 @@ public class DonnyAI : MonoBehaviourPun
     [SerializeField] private Vector3 jailMaxBounds;
     [SerializeField] private Vector3 playerCagePos;
     [SerializeField] private Vector3 playerDropPos;
+    private bool isAttacking;
+    private float pathIncompleteTimer = 0f;
+    private float pathIncompleteWaitTime = 1f;
 
     // Start Function Disabling the script for any player but the master client. so it runs one instance. and also disabling audiolistener for every client, and callling set difficulty.
     private void Start()
     {
-        if (!PhotonNetwork.IsMasterClient)
+        if (!photonView.IsMine)
         {
             enabled = false;
-            return;
-        }
-        if (!photonView.IsMine || PhotonNetwork.IsMasterClient)
-        {
-            gameObject.GetComponent<AudioListener>().enabled = false;
             return;
         }
         photonView.RPC(nameof(SetDifficulty),RpcTarget.AllBufferedViaServer);   
@@ -72,7 +70,7 @@ public class DonnyAI : MonoBehaviourPun
     // Update Function Doing the logic for All functions based on chasing ismovingtopos and islistening parameters. and also calls the neccessary functions.
     private void Update()
     {
-        if (!isGraceMode)
+        if (!isGraceMode && !isAttacking)
         {
             AttackRange();
             SightRange();
@@ -87,7 +85,6 @@ public class DonnyAI : MonoBehaviourPun
         else
         {
             isChasing = false;
-            isMovingToPos = false;
             if (isMovingToPos) { GoToPosition(); }
             else { Patrolling(); }
             return;
@@ -103,12 +100,12 @@ public class DonnyAI : MonoBehaviourPun
             if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit, attackRange))
             {
                 Debug.DrawLine(agentEyes.position, obj.transform.position, Color.cyan);
-                if (isChasing && hit.collider.CompareTag("StaticDoor"))
+                if (isChasing && hit.collider.CompareTag("StaticDoor") && !isAttacking)
                 {
                     print("ATTACK Static Door Called");
                     StaticDoorOpen(obj, hit);
                 }
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider.CompareTag("Player") && !isAttacking)
                 {
                     print("ATTACK player Called");
                     StartCoroutine(Attack(hit.collider));
@@ -330,22 +327,28 @@ public class DonnyAI : MonoBehaviourPun
         if (agent.pathStatus == NavMeshPathStatus.PathComplete)
         {
             agent.SetDestination(MovePos);
+            pathIncompleteTimer = 0f; // Reset the timer when the path is complete
         }
         else
         {
-            Debug.Log("(GoToPosition) - Path Uncompleted.");
-            isMovingToPos = false;
-            SearchWalkPoint();
+            pathIncompleteTimer += Time.deltaTime; // Increment the timer
+
+            if (pathIncompleteTimer >= pathIncompleteWaitTime)
+            {
+                Debug.Log("(GoToPosition) - Path Uncompleted.");
+                isMovingToPos = false;
+                SearchWalkPoint();
+                pathIncompleteTimer = 0f; // Reset the timer after bailing out
+            }
         }
-        float distanceToLastKnown = (transform.position - MovePos).sqrMagnitude;
-        if (distanceToLastKnown < 2f)
+        if (Vector3.Distance(transform.position, MovePos) < 2f)
         {
             Debug.Log("(GoToPosition) - Path Completed!");
             agent.speed = agentWalkSpeed;
             isMovingToPos = false;
             SearchWalkPointFocused();
-        }
     }
+}
     // Finds a Walkpoint either in a specific way or Randomly depending on conditions for the patrolling function.
     public void SearchWalkPoint()
     {
@@ -513,7 +516,6 @@ public class DonnyAI : MonoBehaviourPun
             StartCoroutine(doorOpener.StaticDoor(SDI, doorview.ViewID));
         }
     }
-
     // Enumerator to go to the position set for the door and waits until it gets there then will call the door opening function.
     // if chasing or movingtopos is true at any time it will break out and cancel.
     IEnumerator CheckDistanceFromDoor(Vector3 pos, PhotonView doorview, StaticDoorInfo SDI)
@@ -538,26 +540,27 @@ public class DonnyAI : MonoBehaviourPun
     public IEnumerator Attack(Collider player)
     {
         print("ATTACK ENUMERATOR");
-        AttackInitial(player);
-        isChasing = false;
+        isAttacking = true;
         PhotonView view = player.gameObject.GetComponent<PhotonView>();
-        while (Vector3.Distance(transform.position, MovePos) > 2f)
-        {
-            yield return null;
-        }
+        view.gameObject.GetComponent<InventoryManager>().DropAllItems();
+        yield return new WaitForEndOfFrame();
+        view.TransferOwnership(PhotonNetwork.LocalPlayer);
+        isChasing = false;
+        AttackInitial(view);
+        yield return new WaitForEndOfFrame();
+        yield return new WaitUntil(() => !isMovingToPos);
         AttackRelease(view);
     }
     // Initial attack which gets the view and sets the ownership of the player to the agent
     // Also sets transform to pick up the player and face the agent then sets the MovePos to the player cage
-    public void AttackInitial(Collider player)
+    public void AttackInitial(PhotonView view)
     {
         print("ATTACK INITIAL");
-        PhotonView view = player.gameObject.GetComponent<PhotonView>();
-        view.TransferOwnership(PhotonNetwork.LocalPlayer);
+        Transform _holder = GameObject.FindGameObjectWithTag("PlayerHolder").transform;
         photonView.RPC(nameof(DonnyCatching), RpcTarget.AllViaServer, view.ViewID, photonView.ViewID);
-        view.transform.position = transform.GetChild(0).transform.GetChild(0).position;
         Vector3 Pos = new Vector3(transform.position.x, view.transform.position.y, transform.position.z);
         view.transform.LookAt(Pos, Vector3.up);
+        view.transform.position = _holder.position;
         MovePos = playerCagePos;
         isMovingToPos = true;
     }
@@ -566,18 +569,20 @@ public class DonnyAI : MonoBehaviourPun
     public void AttackRelease(PhotonView view)
     {
         print("ATTACK RELEASED");
+        if (doorOpener.CageInfo.isLocked && !hasReleased){
+            hasReleased = true;
+            StartCoroutine(itemSpawning.SpawnItem("Jail Key", 1, itemSpawning.JailKeySpawnPoints));
+        }
+        else if (!doorOpener.CageInfo.isLocked) { StartCoroutine(doorOpener.LockCage());} 
         view.transform.position = playerDropPos;
         view.TransferOwnership(view.Owner);
         photonView.RPC(nameof(DonnyRelease), RpcTarget.AllViaServer, view.ViewID);
         agent.speed = agentWalkSpeed;
         Running = false;
         Walking = true;
+        hasReleased = false;
+        isAttacking = false;
         StartCoroutine(nameof(GracePeriod));
-        if (doorOpener.CageInfo.isLocked == false && !hasReleased){
-            hasReleased = true;
-            doorOpener.LockCage();
-            itemSpawning.SpawnItem("Jail Key", 1, itemSpawning.JailKeySpawnPoints);
-        }
 
     }
     // Starts grace period
@@ -603,7 +608,7 @@ public class DonnyAI : MonoBehaviourPun
             proceduralAnim.stepHeight = 0.5f;
             proceduralAnim.stepLength = 2.35f;
             proceduralAnim.angularSpeed = 10;
-            proceduralAnim.bounceAmplitude = 0.2f;
+            proceduralAnim.bounceAmplitude = 0.3f;
         }
         if (agent.speed == agentWalkSpeed)
         {
@@ -611,7 +616,7 @@ public class DonnyAI : MonoBehaviourPun
             Running = false;
             proceduralAnim.smoothness = 3;
             proceduralAnim.stepHeight = 0.5f;
-            proceduralAnim.stepLength = 2.25f;
+            proceduralAnim.stepLength = 2.3f;
             proceduralAnim.angularSpeed = 7;
             proceduralAnim.bounceAmplitude = 0.2f;
         }
@@ -663,7 +668,8 @@ public class DonnyAI : MonoBehaviourPun
     {
         PhotonView playerview = PhotonView.Find(playerid);
         PhotonView view = PhotonView.Find(viewid);
-        playerview.transform.SetParent(view.transform.GetChild(0).transform.GetChild(0).transform);
+        Transform _holder = GameObject.FindGameObjectWithTag("PlayerHolder").transform;
+        playerview.transform.SetParent(_holder);
         playerview.GetComponent<PlayerMovement>().enabled = false;
         playerview.GetComponent<InventoryManager>().enabled = false;
         playerview.GetComponent<CharacterController>().enabled = false;
