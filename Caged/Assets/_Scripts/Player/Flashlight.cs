@@ -4,7 +4,8 @@ using Photon.Pun;
 using UnityEngine.Rendering.HighDefinition;
 public class Flashlight : MonoBehaviourPun
 {
-    [SerializeField] private HDAdditionalLightData flashLight;
+    public HDAdditionalLightData flashLightData;
+    public Light _flashlight;
     public AudioSource audioSource;
     public AudioClip[] clips;
     public AudioClip useClip;
@@ -26,8 +27,8 @@ public class Flashlight : MonoBehaviourPun
     [SerializeField] float intensity = 100;
     private bool isZooming;
     
-    private void Awake(){
-        photonView.RPC(nameof(PlaySound), RpcTarget.All, photonView.ViewID, 1);
+    private void Start(){
+        photonView.RPC(nameof(PlaySound), RpcTarget.All, photonView.ViewID, true);
     }
     public void BatteryDrain()
     {
@@ -48,14 +49,14 @@ public class Flashlight : MonoBehaviourPun
             Color.green;
         if (BatteryPercentage <= 0f)
         {
-            photonView.RPC(nameof(FlashLightToggle),RpcTarget.All, photonView.ViewID, false);
+            photonView.RPC(nameof(FlashLightToggle),RpcTarget.AllViaServer, photonView.ViewID, false);
         }
     }
     public void Update()
     {
         if (!photonView.IsMine)
             return;
-        if (flashLight.gameObject.activeSelf) { BatteryDrain(); }
+        if (flashLightData.gameObject.activeSelf) { BatteryDrain(); }
         
         if (UserInput.instance.FlashlightTogglePressed){
             ToggleFlashLight();
@@ -94,7 +95,7 @@ public class Flashlight : MonoBehaviourPun
     public void ToggleFlashLight(){
         if (BatteryPercentage > 0){
             isOn = !isOn;
-            photonView.RPC(nameof(FlashLightToggle), RpcTarget.All, photonView.ViewID, isOn);
+            photonView.RPC(nameof(FlashLightToggle), RpcTarget.AllViaServer, photonView.ViewID, isOn);
             photonView.RPC(nameof(PlaySound), RpcTarget.AllViaServer, photonView.ViewID, isOn);
         }
     }
@@ -102,7 +103,7 @@ public class Flashlight : MonoBehaviourPun
     public void FlashlightZoom(int viewId, float angle, float range, float intensity)
     {
         PhotonView view = PhotonView.Find(viewId);
-        HDAdditionalLightData data = view.gameObject.GetComponent<Flashlight>().flashLight;
+        HDAdditionalLightData data = view.gameObject.GetComponent<Flashlight>().flashLightData;
         data.SetSpotAngle(angle, angle / 2);
         data.range = range;
         data.intensity = intensity;
@@ -113,7 +114,7 @@ public class Flashlight : MonoBehaviourPun
     {
         PhotonView view = PhotonView.Find(viewid);
         Flashlight FL = view.gameObject.GetComponent<Flashlight>();
-        FL.flashLight.gameObject.SetActive(i);
+        FL._flashlight.enabled = i;
     }
     [PunRPC]
     public void PlaySound(int viewid, bool i)

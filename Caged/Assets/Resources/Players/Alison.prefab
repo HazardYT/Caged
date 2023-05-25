@@ -7728,7 +7728,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98adc034ba4f4f0468dc361e3ce3cd2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  flashLight: {fileID: 3493100894687036471}
+  flashLightData: {fileID: 3493100894687036471}
+  _flashlight: {fileID: 6742013023557842132}
   audioSource: {fileID: 4605622854451046222}
   clips:
   - {fileID: 8300000, guid: a4ad475dc4585884dbc16f6adda6b309, type: 3}

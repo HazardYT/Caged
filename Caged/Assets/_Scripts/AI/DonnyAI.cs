@@ -31,6 +31,7 @@ public class DonnyAI : MonoBehaviourPun
     [SerializeField] private float HearingDistanceMaxVolume;
     [SerializeField] private int maxWalkPointAttempts = 3;
     [SerializeField] private float hearingDistance;
+    [SerializeField] Collider[] overlapSphereResults;
     public bool isListening = true;
     public bool _running;
     public bool _walking;
@@ -56,6 +57,7 @@ public class DonnyAI : MonoBehaviourPun
     private bool isAttacking;
     private float pathIncompleteTimer = 0f;
     private float pathIncompleteWaitTime = 1f;
+    public int maxColliders;
 
     // Start Function Disabling the script for any player but the master client. so it runs one instance. and also disabling audiolistener for every client, and callling set difficulty.
     private void Start()
@@ -67,15 +69,16 @@ public class DonnyAI : MonoBehaviourPun
         }
         photonView.RPC(nameof(SetDifficulty),RpcTarget.AllBufferedViaServer);   
     }
+    
     // Update Function Doing the logic for All functions based on chasing ismovingtopos and islistening parameters. and also calls the neccessary functions.
     private void Update()
     {
         if (!isGraceMode && !isAttacking)
         {
-            AttackRange();
-            SightRange();
-            DoorMemory();
             MaxRange();
+            SightRange();
+            AttackRange();
+            DoorMemory();
             Animation();
             if (isChasing && !isMovingToPos) { Chase(); agent.speed = agentRunSpeed; }
             if (!isChasing && isMovingToPos) { GoToPosition(); agent.speed = agentRunSpeed; }
@@ -93,22 +96,23 @@ public class DonnyAI : MonoBehaviourPun
     // Attack Range Function that checks if it can see the player and if it sees a door while chasing it will open it. else it attacks if it can see the player.
     public void AttackRange()
     {
-        Collider[] InAttackRange = Physics.OverlapSphere(transform.position, attackRange, allMask);
-        foreach (Collider obj in InAttackRange)
+        foreach (Collider obj in overlapSphereResults)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit, attackRange))
-            {
-                Debug.DrawLine(agentEyes.position, obj.transform.position, Color.cyan);
-                if (isChasing && hit.collider.CompareTag("StaticDoor") && !isAttacking)
+            if (obj == null) {continue;}
+            if (Vector3.Distance(transform.position, obj.transform.position) <= attackRange){
+                if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out RaycastHit hit, attackRange))
                 {
-                    print("ATTACK Static Door Called");
-                    StaticDoorOpen(obj, hit);
-                }
-                if (hit.collider.CompareTag("Player") && !isAttacking)
-                {
-                    print("ATTACK player Called");
-                    StartCoroutine(Attack(hit.collider));
+                    Debug.DrawLine(agentEyes.position, obj.transform.position, Color.cyan);
+                    if (isChasing && hit.collider.CompareTag("StaticDoor") && !isAttacking)
+                    {
+                        print("ATTACK Static Door Called");
+                        StaticDoorOpen(obj, hit);
+                    }
+                    if (hit.collider.CompareTag("Player") && !isAttacking)
+                    {
+                        print("ATTACK player Called");
+                        StartCoroutine(Attack(hit.collider));
+                    }
                 }
             }
         }
@@ -116,31 +120,33 @@ public class DonnyAI : MonoBehaviourPun
     // Sight Range Function That Checks for players and there lights and updates the isChasing var accordingly
     public void SightRange()
     {
-        Debug.Log("(SightRange) - Function Called");
-        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsPlayer);
-        foreach (Collider obj in InSightRange)
+        print("(SightRange) - Function Called");
+        foreach (Collider obj in overlapSphereResults)
         {
-            if (obj.CompareTag("Player"))
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit))
+            if (obj == null) {continue;}
+            if (Vector3.Distance(transform.position, obj.transform.position) <= sightRange){
+                if (obj.CompareTag("Player"))
                 {
-                    // Check if can see line of sight to player and is in range if so isChase is true
-                    if (hit.collider.CompareTag("Player"))
+                    RaycastHit hit;
+                    if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out hit))
                     {
-                        Debug.Log("(SightRange) - Chasing");
-                        Target = obj.transform;
-                        isMovingToPos = false;
-                        isChasing = true;
-                    }
-                    // Check if cant see player but is also chasing and theres no light seen
-                    if (!hit.collider.CompareTag("Player") && isChasing && !CanSeePlayerLight(obj.transform))
-                    {
-                        Debug.Log("(SightRange) - Going To Position");
-                        isChasing = false;
-                        MovePos = Target.position;
-                        isMovingToPos = true;
-                        Target = null;
+                        // Check if can see line of sight to player and is in range if so isChase is true
+                        if (hit.collider.CompareTag("Player"))
+                        {
+                            print("(SightRange) - Chasing");
+                            Target = obj.transform;
+                            isMovingToPos = false;
+                            isChasing = true;
+                        }
+                        // Check if cant see player but is also chasing and theres no light seen
+                        if (!hit.collider.CompareTag("Player") && isChasing && !CanSeePlayerLight(obj.transform))
+                        {
+                            print("(SightRange) - Going To Position");
+                            isChasing = false;
+                            MovePos = Target.position;
+                            isMovingToPos = true;
+                            Target = null;
+                        }
                     }
                 }
             }
@@ -150,47 +156,50 @@ public class DonnyAI : MonoBehaviourPun
     // also checks if theres a players light behind a door and if there is it also opens door 
     public void SightRangeDoors()
     {
-        Debug.Log("(SightRangeDoors) - Function Called");
-        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, allMask);
-        foreach (Collider obj in InSightRange)
+        print("(SightRangeDoors) - Function Called");
+        foreach (Collider obj in overlapSphereResults)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(agentEyes.position, obj.transform.position, out hit, allMask))
-            {
-                if (hit.collider.CompareTag("StaticDoor"))
-                {
-                    Debug.Log("(SightRangeDoors) - Random Open Check");
-                    PhotonView doorview = obj.gameObject.GetComponent<PhotonView>();
-                    StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
-
-                    if (SDI != null && SDI.isOpen == false)
+            if (obj == null) {continue;}
+            if (obj.CompareTag("StaticDoor") || obj.CompareTag("Player")){
+                if (Vector3.Distance(transform.position, obj.transform.position) <= sightRange){
+                    if (Physics.Raycast(agentEyes.position, obj.transform.position, out RaycastHit hit))
                     {
-                        Debug.DrawRay(agentEyes.position, obj.transform.position, Color.grey);
+                        if (hit.collider.CompareTag("StaticDoor"))
+                        {
+                            print("(SightRangeDoors) - Random Open Check");
+                            PhotonView doorview = obj.gameObject.GetComponent<PhotonView>();
+                            StaticDoorInfo SDI = doorview.gameObject.GetComponent<StaticDoorInfo>();
 
-                        if (Random.value < chanceOfSearch / 100 && !hasFoundDoor)
-                        {
-                            hasFoundDoor = true;
-                            OpenDoor(hit,doorview, SDI);
-                        }
-                        else
-                        {
-                            Collider[] nearbyObjects = Physics.OverlapSphere(obj.transform.position, 1f, whatIsPlayer);
-                            foreach (Collider nearbyObj in nearbyObjects)
+                            if (SDI != null && SDI.isOpen == false)
                             {
-                                if (nearbyObj.CompareTag("Player"))
+                                Debug.DrawRay(agentEyes.position, obj.transform.position, Color.grey);
+
+                                if (Random.value < chanceOfSearch / 100 && !hasFoundDoor)
                                 {
-                                    bool flashlightActive = CanSeePlayerLight(nearbyObj.transform);
-                                    if (flashlightActive)
+                                    hasFoundDoor = true;
+                                    OpenDoor(hit,doorview, SDI);
+                                }
+                                else
+                                {
+                                    foreach (Collider nearbyObj in overlapSphereResults)
                                     {
-                                        hasFoundDoor = true;
-                                        OpenDoor(hit, doorview, SDI);
-                                        break;
+                                        if (nearbyObj == null) { continue; }
+                                        if (nearbyObj.CompareTag("Player"))
+                                        {
+                                            bool flashlightActive = IsPlayerLightOn(nearbyObj.transform);
+                                            if (flashlightActive && Vector3.Distance(nearbyObj.transform.position, hit.transform.position) < 2)
+                                            {
+                                                hasFoundDoor = true;
+                                                OpenDoor(hit, doorview, SDI);
+                                                break;
+                                            }
+                                        }
                                     }
                                 }
                             }
+                            else print("(SightRangeDoors) - Error on Static Door Info");
                         }
                     }
-                    else print("(SightRangeDoors) - Error on Static Door Info");
                 }
             }
         }
@@ -221,35 +230,36 @@ public class DonnyAI : MonoBehaviourPun
     // also compares it and if its not the same will go to it, and if the door is not in the dictionary it will add it.
     public void DoorMemory()
     {
-        Collider[] InSightRange = Physics.OverlapSphere(transform.position, sightRange, whatIsDoors);
-        foreach (Collider obj in InSightRange)
+        foreach (Collider obj in overlapSphereResults)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(agentEyes.position, obj.transform.position, out hit))
-            {
-                // Door Memory
-                if (hit.collider.CompareTag("StaticDoor") || hit.collider.CompareTag("Door"))
+            if (obj == null) {continue;}
+            if (Vector3.Distance(transform.position, obj.transform.position) <= sightRange){
+                if (Physics.Raycast(agentEyes.position, obj.transform.position, out RaycastHit hit))
                 {
-                    Debug.Log("(DoorMemory) - Door Memory Called");
-                    PhotonView doorView = hit.collider.GetComponent<PhotonView>();
-                    bool currentIsOpen = hit.collider.CompareTag("StaticDoor") ? hit.collider.GetComponent<StaticDoorInfo>().isOpen : hit.collider.GetComponent<DoorInfo>().isOpen;
-                    if (DoorStates.ContainsKey(doorView.ViewID))
+                    // Door Memory
+                    if (hit.collider.CompareTag("StaticDoor") || hit.collider.CompareTag("Door"))
                     {
-                        if (DoorStates[doorView.ViewID] != currentIsOpen)
+                        print("(DoorMemory) - Door Memory Called");
+                        PhotonView doorView = hit.collider.GetComponent<PhotonView>();
+                        bool currentIsOpen = hit.collider.CompareTag("StaticDoor") ? hit.collider.GetComponent<StaticDoorInfo>().isOpen : hit.collider.GetComponent<DoorInfo>().isOpen;
+                        if (DoorStates.ContainsKey(doorView.ViewID))
                         {
-                            walkPoint = hit.point;
-                            isWalkPointSet = true;
-                            DoorStates[doorView.ViewID] = currentIsOpen;
-                            if (doorOpener.StaticDoorCooldown)
+                            if (DoorStates[doorView.ViewID] != currentIsOpen)
                             {
-                                hasFoundDoor = true;
-                                if (doorView.Owner != PhotonNetwork.LocalPlayer) { doorView.RequestOwnership(); }
-                                StartCoroutine(CheckDistanceFromDoor(hit.point, doorView, doorView.gameObject.GetComponent<StaticDoorInfo>()));
+                                walkPoint = hit.point;
+                                isWalkPointSet = true;
+                                DoorStates[doorView.ViewID] = currentIsOpen;
+                                if (doorOpener.StaticDoorCooldown)
+                                {
+                                    hasFoundDoor = true;
+                                    if (doorView.Owner != PhotonNetwork.LocalPlayer) { doorView.RequestOwnership(); }
+                                    StartCoroutine(CheckDistanceFromDoor(hit.point, doorView, doorView.gameObject.GetComponent<StaticDoorInfo>()));
+                                }
                             }
                         }
+                        // add door to dictionary
+                        else { DoorStates.Add(hit.collider.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
                     }
-                    // add door to dictionary
-                    else { DoorStates.Add(hit.collider.GetComponent<PhotonView>().ViewID, currentIsOpen); return; }
                 }
             }
         }
@@ -258,31 +268,34 @@ public class DonnyAI : MonoBehaviourPun
     // Also has a check for if the player is not in the range and is chasing it will stop chase. to cleanup previous chasing
     public void MaxRange()
     {
-        Collider[] playersInChaseRange = Physics.OverlapSphere(transform.position, maxRange, whatIsPlayer);
-        foreach (Collider player in playersInChaseRange)
+        overlapSphereResults = new Collider[maxColliders];
+        Physics.OverlapSphereNonAlloc(transform.position, maxRange, overlapSphereResults, allMask);
+        foreach (Collider player in overlapSphereResults)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(agentEyes.position, player.transform.position - agentEyes.position, out hit))
-            {
-                if (hit.transform.CompareTag("Player"))
+            if (player == null) {return;}
+            if (player.gameObject.CompareTag("Player")){
+                if (Physics.Raycast(agentEyes.position, player.transform.position - agentEyes.position, out RaycastHit hit))
                 {
-                    bool flashlightActive = CanSeePlayerLight(player.transform);
-                    if (flashlightActive)
+                    if (hit.transform.CompareTag("Player"))
                     {
-                        Debug.DrawLine(transform.position, player.transform.position, Color.white);
-                        isMovingToPos = false;
-                        Target = player.transform;
-                        isChasing = true;
-                        return;
+                        bool flashlightActive = CanSeePlayerLight(player.transform);
+                        if (flashlightActive)
+                        {
+                            Debug.DrawLine(transform.position, player.transform.position, Color.white);
+                            isMovingToPos = false;
+                            Target = player.transform;
+                            isChasing = true;
+                            return;
+                        }
                     }
-                }
-                if (!hit.collider.CompareTag("Player") && !isMovingToPos && isChasing && !CanSeePlayerLight(player.transform))
-                {
-                    Debug.Log("(MaxRange) - Lost Player Line Of Sight Moving To Last Pos.");
-                    isChasing = false;
-                    MovePos = Target.position;
-                    isMovingToPos = true;
-                    Target = null;
+                    if (!hit.collider.CompareTag("Player") && !isMovingToPos && isChasing && !CanSeePlayerLight(player.transform))
+                    {
+                        print("(MaxRange) - Lost Player Line Of Sight Moving To Last Pos.");
+                        isChasing = false;
+                        MovePos = Target.position;
+                        isMovingToPos = true;
+                        Target = null;
+                    }
                 }
             }
         }
@@ -290,7 +303,7 @@ public class DonnyAI : MonoBehaviourPun
     // Called From other functions which predicts the movement and actually chases the player while being run. as long as isChasing is true.
     public void Chase()
     {
-        Debug.Log("(Chase) - Function called");
+        print("(Chase) - Function called");
         float distanceToTarget = Vector3.Distance(transform.position, Target.position);
 
         if (distanceToTarget <= maxRange)
@@ -307,7 +320,7 @@ public class DonnyAI : MonoBehaviourPun
     {
         if (!isWalkPointSet) SearchWalkPoint();
 
-        Debug.Log("(Patrolling) - Function called");
+        print("(Patrolling) - Function called");
         if (isWalkPointSet)
         {
             if (agent.pathStatus == NavMeshPathStatus.PathComplete)
@@ -335,7 +348,7 @@ public class DonnyAI : MonoBehaviourPun
 
             if (pathIncompleteTimer >= pathIncompleteWaitTime)
             {
-                Debug.Log("(GoToPosition) - Path Uncompleted.");
+                print("(GoToPosition) - Path Uncompleted.");
                 isMovingToPos = false;
                 SearchWalkPoint();
                 pathIncompleteTimer = 0f; // Reset the timer after bailing out
@@ -343,7 +356,7 @@ public class DonnyAI : MonoBehaviourPun
         }
         if (Vector3.Distance(transform.position, MovePos) < 2f)
         {
-            Debug.Log("(GoToPosition) - Path Completed!");
+            print("(GoToPosition) - Path Completed!");
             agent.speed = agentWalkSpeed;
             isMovingToPos = false;
             SearchWalkPointFocused();
@@ -379,12 +392,12 @@ public class DonnyAI : MonoBehaviourPun
             {
                 walkPoint = hit.position;
                 isWalkPointSet = true;
-                Debug.Log("(SearchWalkPoint) - Found Valid Walkpoint");
+                print("(SearchWalkPoint) - Found Valid Walkpoint");
                 return;
             }
             else
             {
-                Debug.Log("(SearchWalkPoint) - Finding Random Walkpoint");
+                print("(SearchWalkPoint) - Finding Random Walkpoint");
                 Vector3 randomDirection = Random.insideUnitSphere * walkPointRange;
                 randomDirection += transform.position;
                 NavMesh.SamplePosition(randomDirection, out hit, walkPointRange, NavMesh.AllAreas);
@@ -424,11 +437,11 @@ public class DonnyAI : MonoBehaviourPun
             {
                 walkPoint = hit.position;
                 isWalkPointSet = true;
-                Debug.Log("(SearchWalkPointFocused) - Finding Focused Walkpoint After Chase");
+                print("(SearchWalkPointFocused) - Finding Focused Walkpoint After Chase");
             }
             else
             {
-                Debug.Log("(SearchWalkPointFocused) - Finding Focused Random Walkpoint");
+                print("(SearchWalkPointFocused) - Finding Focused Random Walkpoint");
                 Vector3 randomDirection = Random.insideUnitSphere * walkPointRange;
                 randomDirection += transform.position;
                 NavMesh.SamplePosition(randomDirection, out hit, walkPointRange, NavMesh.AllAreas);
@@ -444,7 +457,7 @@ public class DonnyAI : MonoBehaviourPun
     // Called From other Functions listening for audiosources playing at a certain volume if so it will go to the location.
     private void Listening()
     {
-        Debug.Log("(Listening) - Function Called");
+        print("(Listening) - Function Called");
         AudioSource[] audioSources = FindObjectsOfType<AudioSource>();
         foreach (AudioSource source in audioSources)
         {
@@ -464,7 +477,7 @@ public class DonnyAI : MonoBehaviourPun
                             Vector3 randomPoint = source.transform.position + Random.insideUnitSphere * 5f;
                             if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 5f, NavMesh.AllAreas))
                             {
-                                Debug.Log("(Listening) - Found Sound, Moving To Pos");
+                                print("(Listening) - Found Sound, Moving To Pos");
                                 MovePos = hit.position;
                                 isMovingToPos = true;
                             }
@@ -477,29 +490,31 @@ public class DonnyAI : MonoBehaviourPun
     // Bool : Checks all lights attatched to the player and finds if its a spotlight and is enabled then it will check if its in a certain angle from the agent if so it will return true.
     private bool CanSeePlayerLight(Transform playerTransform)
     {
-        Debug.Log("(CanSeePlayerLight) - Function Called");
-        Light[] lights = playerTransform.GetComponentsInChildren<Light>();
-        foreach (Light light in lights)
+        print("(CanSeePlayerLight) - Function Called");
+        Light light = playerTransform.GetComponent<Flashlight>()._flashlight;
+        if (light.enabled)
         {
-            if (light.enabled && light.type == LightType.Spot)
+            Vector3 lightToAgentDirection = (transform.position - light.transform.position).normalized;
+            float angleBetween = Vector3.Dot(light.transform.forward, lightToAgentDirection);
+
+            if (angleBetween > Mathf.Cos(light.spotAngle * 0.5f * Mathf.Deg2Rad))
             {
-                Vector3 lightToAgentDirection = (transform.position - light.transform.position).normalized;
-                float angleBetween = Vector3.Dot(light.transform.forward, lightToAgentDirection);
+                Vector3 playerToAgentDirection = (transform.position - playerTransform.position).normalized;
+                float playerToAgentAngle = Vector3.Angle(playerTransform.forward, playerToAgentDirection);
+                float maxAllowedAngle = 65f;
 
-                if (angleBetween > Mathf.Cos(light.spotAngle * 0.5f * Mathf.Deg2Rad))
+                if (playerToAgentAngle <= maxAllowedAngle)
                 {
-                    Vector3 playerToAgentDirection = (transform.position - playerTransform.position).normalized;
-                    float playerToAgentAngle = Vector3.Angle(playerTransform.forward, playerToAgentDirection);
-                    float maxAllowedAngle = 65f;
-
-                    if (playerToAgentAngle <= maxAllowedAngle)
-                    {
-                        Debug.Log("(CanSeePlayerLight) - Light Found");
-                        return true;
-                    }
+                    print("(CanSeePlayerLight) - Light Found");
+                    return true;
                 }
             }
         }
+        return false;
+    }
+    private bool IsPlayerLightOn(Transform playerTransform){
+        Light light = playerTransform.GetComponent<Flashlight>()._flashlight;
+        if (light.enabled) { return true;}
         return false;
     }
     // Calls the Door objects open function and gets ownership to do so.

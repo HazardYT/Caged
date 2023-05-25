@@ -3,14 +3,14 @@ using Photon.Pun;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnPlayers : MonoBehaviourPunCallbacks
+public class SpawnPlayers : MonoBehaviourPun
 {
     public GameObject[] playerPrefabs;
     public List<Transform> spawnPoints;
 
     private void Start()
     {
-        SpawnPlayer();
+        photonView.RPC(nameof(SpawnPlayer), RpcTarget.AllBufferedViaServer);
     }
 
     [PunRPC]
