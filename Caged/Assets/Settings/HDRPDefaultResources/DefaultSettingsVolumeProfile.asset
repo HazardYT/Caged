@@ -359,7 +359,7 @@ MonoBehaviour:
     m_Value: 1
   fixedExposure:
     m_OverrideState: 1
-    m_Value: -2
+    m_Value: -2.6842108
   compensation:
     m_OverrideState: 0
     m_Value: 0
@@ -510,10 +510,10 @@ MonoBehaviour:
     m_Value: 4
   directLightingStrength:
     m_OverrideState: 1
-    m_Value: 0.737
+    m_Value: 0.83
   radius:
     m_OverrideState: 1
-    m_Value: 1.04
+    m_Value: 1.561
   spatialBilateralAggressiveness:
     m_OverrideState: 1
     m_Value: 0.15

@@ -1,14 +1,19 @@
 using UnityEngine;
 using TMPro;
 using Photon.Pun;
-
+using System.Collections;
+using UnityEngine.UI;
+using UnityEngine.Video;
 public class GameManager : MonoBehaviourPun, IPunObservable
 {
     public TextMeshProUGUI timeText;
     public TextMeshProUGUI moneyText;
+    public VideoPlayer video;
+    public RawImage videoImage;
     private float elapsedTime;
     public bool timerOn = false;
     public float _moneyCollected = 0;
+    public DonnyAI donnyAI;
 
     private int syncedMinutes = 0;
     private int syncedSeconds = 0;
@@ -28,7 +33,20 @@ public class GameManager : MonoBehaviourPun, IPunObservable
 
         timeText.text = string.Format("{0:00}:{1:00}", syncedMinutes, syncedSeconds);
     }
-
+    [PunRPC]
+    public void StartJumpScare(int viewid){
+        GameManager manager = PhotonView.Find(viewid).GetComponent<GameManager>();
+        manager.videoImage.enabled = true;
+        manager.video.Play();
+        StartCoroutine(manager.DonnyJumpScare(viewid));
+    }
+    public IEnumerator DonnyJumpScare(int viewid){
+        GameManager manager = PhotonView.Find(viewid).GetComponent<GameManager>();
+        yield return new WaitForSeconds(2f);
+        yield return new WaitUntil(() => !manager.video.isPlaying);
+        manager.video.Stop();
+        manager.videoImage.enabled = false;
+    }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)

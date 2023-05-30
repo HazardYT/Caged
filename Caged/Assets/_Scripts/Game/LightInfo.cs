@@ -4,6 +4,7 @@ public class LightInfo : MonoBehaviourPun
 {
     public bool isOn;
     public bool isLocked;
+    public bool needsMaterialSwitch = true;
     public Transform Light;
     public Transform Light2;
     public Transform _lightSwitch;

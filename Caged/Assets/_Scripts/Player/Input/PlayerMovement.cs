@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviourPun
 {
     [Header("Variables")]
     public bool isInGUI = false;
+    public bool isEnabled = true;
     private float verticalVelocity = 0f;
     [SerializeField] private Slider slider;
     [SerializeField] private CharacterController controller;
@@ -63,7 +64,7 @@ public class PlayerMovement : MonoBehaviourPun
     }
     public void Update()
     {
-        if (!photonView.IsMine) { return; }
+        if (!photonView.IsMine || !isEnabled) { return; }
         Look();
         Move();
         ManageToggles();
@@ -245,7 +246,6 @@ public class PlayerMovement : MonoBehaviourPun
             }
         }
     }
-
     private SurfaceType DetectSurfaceType()
     {
         RaycastHit hit;

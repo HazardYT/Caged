@@ -1,32 +1,58 @@
-
-using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class SpawnPlayers : MonoBehaviourPun
 {
     public GameObject[] playerPrefabs;
     public List<Transform> spawnPoints;
 
+    private List<int> usedSpawnPoints = new List<int>();
+
     private void Start()
     {
-        photonView.RPC(nameof(SpawnPlayer), RpcTarget.AllBufferedViaServer);
+        StartCoroutine(SpawnPlayer());
     }
 
-    [PunRPC]
-    private void SpawnPlayer()
+    private IEnumerator SpawnPlayer()
     {
-        int randomIndex = Random.Range(0, spawnPoints.Count);
-        if (spawnPoints[randomIndex].GetComponent<PhotonView>() != null)
+        yield return new WaitForSeconds(0.1f);
+
+        int randomIndex = GetRandomSpawnPointIndex();
+
+        if (randomIndex != -1)
         {
             Transform selectedSpawnPoint = spawnPoints[randomIndex];
-            PhotonNetwork.Instantiate("Players/" + playerPrefabs[PlayerObjects.currentSelectionIndex].name, selectedSpawnPoint.position, Quaternion.identity);
-
-            PhotonNetwork.Destroy(selectedSpawnPoint.GetComponent<PhotonView>());
+            GameObject playerPrefab = playerPrefabs[PlayerObjects.currentSelectionIndex];
+            GameObject player = PhotonNetwork.Instantiate("Players/" + playerPrefab.name, selectedSpawnPoint.position, Quaternion.identity);
+            photonView.RPC(nameof(AddUsedSpawnPoint), RpcTarget.AllBufferedViaServer, randomIndex);
         }
         else
         {
             Debug.LogError("No available spawn points.");
         }
+    }
+
+    [PunRPC]
+    public void AddUsedSpawnPoint(int index)
+    {
+        usedSpawnPoints.Add(index);
+    }
+
+    private int GetRandomSpawnPointIndex()
+    {
+        if (usedSpawnPoints.Count >= spawnPoints.Count)
+        {
+            return -1; // No available spawn points
+        }
+
+        int randomIndex;
+        do
+        {
+            randomIndex = Random.Range(0, spawnPoints.Count);
+        } while (usedSpawnPoints.Contains(randomIndex));
+
+        return randomIndex;
     }
 }

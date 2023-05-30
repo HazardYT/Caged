@@ -33,15 +33,10 @@ public class InGameSettingsMenu : MonoBehaviourPun
         if (!photonView.IsMine) return;
         if (UserInput.instance.MenuPressed)
         {
-            if(!PhotonNetwork.OfflineMode){
-                if (!menu.activeSelf && !transform.root.GetComponent<PlayerMovement>().isInGUI){
-                    menuon();
-                } else menuoff();
-            } else if(PhotonNetwork.OfflineMode){
-                if (!menu.activeSelf && !transform.root.GetComponent<PlayerMovement>().isInGUI){
-                    menuon();
-                } else menuoff();
-            }
+            if (!menu.activeSelf && !transform.root.GetComponent<PlayerMovement>().isInGUI){
+                menuon();
+            } else menuoff();
+
         }
         if (UserInput.instance.ExitPressed && UserInput.instance.currentLookInput is Gamepad)
         {

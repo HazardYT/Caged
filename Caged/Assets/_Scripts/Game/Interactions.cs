@@ -381,9 +381,9 @@ public class Interactions : MonoBehaviourPun
         LI.isOn = i;
         LI.Light.gameObject.SetActive(i);
         if (LI.Light2 != null) { LI.Light2.gameObject.SetActive(i);}
-        if (i){
+        if (i && LI.needsMaterialSwitch){
             LI.Light.GetComponentInParent<MeshRenderer>().material = LI.onMat;     if (LI.Light2 != null) { LI.Light2.GetComponentInParent<MeshRenderer>().material = LI.onMat; }
-        } else { LI.Light.GetComponentInParent<MeshRenderer>().material = LI.offMat;    if (LI.Light2 != null) { LI.Light2.GetComponentInParent<MeshRenderer>().material = LI.offMat; }}
+        } else if (!i && LI.needsMaterialSwitch) { LI.Light.GetComponentInParent<MeshRenderer>().material = LI.offMat; if (LI.Light2 != null) { LI.Light2.GetComponentInParent<MeshRenderer>().material = LI.offMat; }}
     }
     [PunRPC]
     public void RPCValueablesSound(int viewid){
