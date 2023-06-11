@@ -15,7 +15,7 @@ public class DonnyAI : MonoBehaviourPun
     [SerializeField] private LayerMask allMask;
     [Header("References")]
     [SerializeField] private NavMeshAgent agent;
-    [SerializeField] private Animator anim;
+    public Animator anim;
     [SerializeField] private Transform agentEyes;
     [SerializeField] private DonnyDoorOpener doorOpener;
     [SerializeField] private ItemSpawning itemSpawning;
@@ -39,6 +39,7 @@ public class DonnyAI : MonoBehaviourPun
     public bool _running;
     public bool _walking;
     public bool _attackrun;
+    public bool _opening;
     public float agentWalkSpeed;
     public float agentRunSpeed;
 
@@ -781,6 +782,16 @@ public class DonnyAI : MonoBehaviourPun
             if (value == _attackrun) return;
             _attackrun = value;
             anim.SetBool("Grabbing", _attackrun);
+        }
+    }
+    public bool Opening
+    {
+        get { return _opening; }
+        set
+        {
+            if (value == _opening) return;
+            _opening = value;
+            anim.SetBool("OpenDoor", _opening);
         }
     }
 }

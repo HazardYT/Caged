@@ -1,7 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 using TMPro;
-using System.Collections;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class LobbyManager : MonoBehaviourPun
@@ -10,6 +10,8 @@ public class LobbyManager : MonoBehaviourPun
     public static int Difficulty = 1;
     public Transform loadingImage;
     public GameObject mapselect;
+    public Image MapImageSlot;
+    [SerializeField] private Sprite[] mapImages;
     [HideInInspector] public string levelname;
     public GameObject StartButton;
     public GameObject MapButton;
@@ -20,12 +22,12 @@ public class LobbyManager : MonoBehaviourPun
 
     public void Start()
     {
+        levelname = "BeaverCreek";
+        MapImageSlot.sprite = mapImages[0];
         PhotonNetwork.AutomaticallySyncScene = true;
         region.text = RegionSelect.region;
         if (PhotonNetwork.IsMasterClient)
         {
-            levelname = "BeaverCreek";
-            photonView.RPC(nameof(rpcMapName), RpcTarget.AllBuffered, levelname);
             StartButton.SetActive(true);
             MapButton.SetActive(true);
         }
@@ -113,6 +115,7 @@ public class LobbyManager : MonoBehaviourPun
         levelname = "BeaverCreek";
         photonView.RPC(nameof(rpcMapName), RpcTarget.AllBuffered, levelname);
         mapselect.SetActive(false);
+        MapImageSlot.sprite = mapImages[0];
     }
 
     public void setmap2()
@@ -120,6 +123,7 @@ public class LobbyManager : MonoBehaviourPun
         levelname = "Cottondale";
         photonView.RPC(nameof(rpcMapName), RpcTarget.AllBuffered, levelname);
         mapselect.SetActive(false);
+        MapImageSlot.sprite = mapImages[1];
     }
 
     public void setmap3()
@@ -127,6 +131,7 @@ public class LobbyManager : MonoBehaviourPun
         levelname = "Woodsburgh";
         photonView.RPC(nameof(rpcMapName), RpcTarget.AllBuffered, levelname);
         mapselect.SetActive(false);
+        MapImageSlot.sprite = mapImages[2];
     }
 
     public void leavelobby()

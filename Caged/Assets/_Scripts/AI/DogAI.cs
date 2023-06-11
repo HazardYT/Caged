@@ -86,8 +86,15 @@ public class DogAI : MonoBehaviour
 
     private void ChasePlayer()
     {
-        walkPointSet = false;
-        agent.SetDestination(target.position);
+        float distanceToTarget = Vector3.Distance(transform.position, target.position);
+        CharacterController playerController = target.GetComponent<CharacterController>();
+        float predictionFactor = Mathf.Lerp(0, 0.5f, distanceToTarget / SearchRadius);
+        Vector3 predictedPosition = target.position + (playerController.velocity * predictionFactor);
+        if (predictedPosition.x <= roomMinBounds.x && predictedPosition.x >= roomMaxBounds.x && predictedPosition.z <= roomMinBounds.z && predictedPosition.z >= roomMaxBounds.z){
+        agent.SetDestination(predictedPosition);
+        }
+        else {agent.SetDestination(target.position);}
+        
     }
 
     private void Patrolling()
