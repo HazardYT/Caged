@@ -79,8 +79,15 @@ public class InventoryManager : MonoBehaviourPun
         else
         {           
             if (info.isValueable){
-                photonView.RPC(nameof(AddMoneyToManager),RpcTarget.AllViaServer, info.ValueableWorth);
-                StartCoroutine(hudText.SetHud("+ $" + info.ValueableWorth, Color.green));
+                if (info.ValueableWorthMax != 0) {
+                    int i = Random.Range(info.ValueableWorthMin, info.ValueableWorthMax);
+                    photonView.RPC(nameof(AddMoneyToManager),RpcTarget.AllViaServer, i);
+                    StartCoroutine(hudText.SetHud("+ $" + i, Color.green));
+                }
+                else{
+                    photonView.RPC(nameof(AddMoneyToManager),RpcTarget.AllViaServer, info.ValueableWorthMin);
+                    StartCoroutine(hudText.SetHud("+ $" + info.ValueableWorthMin, Color.green));
+                }
             }
             else{
                 AddItem(hitview.transform.name);
@@ -91,7 +98,7 @@ public class InventoryManager : MonoBehaviourPun
         }
     }
     [PunRPC]
-    public void AddMoneyToManager(float amount){
+    public void AddMoneyToManager(int amount){
         Manager._moneyCollected += amount;
         Manager.moneyText.text = "$" + Manager._moneyCollected;
     }

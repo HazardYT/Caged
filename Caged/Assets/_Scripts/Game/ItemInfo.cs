@@ -1,10 +1,12 @@
 using UnityEngine;
 using Photon.Pun;
+
 public class ItemInfo : MonoBehaviourPun
 {
     public bool locked = false;
     public bool isValueable;
-    public float ValueableWorth;
+    public int ValueableWorthMin;
+    public int ValueableWorthMax;
     public AudioSource audioSource;
     [SerializeField] private AudioClip[] audioClips;
     private void OnCollisionEnter(Collision collision){
