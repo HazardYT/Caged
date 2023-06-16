@@ -1,5 +1,6 @@
 using System.Collections;
 using Photon.Pun;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,7 +13,8 @@ public class DogAI : MonoBehaviourPun
     public NavMeshAgent agent;
     public LayerMask mask;
     public Transform target;
-    public int _DistractionDelayTime = 30;
+    [SerializeField] Collider[] CheckSphereResults;
+    public int _DistractionDelayTime = 10;
     public int _chaseRange;
     public bool isOnTimer;
     public bool Distracted = false;
@@ -20,68 +22,84 @@ public class DogAI : MonoBehaviourPun
     private bool waitingforwalkpoint = false;
     public float ChaseSpeed;
     public float PatrolSpeed;
-
+    public bool canSeePlayer = true;
+    [SerializeField] private Transform SensingPosition;
     public Vector3 roomMinBounds;
     public Vector3 roomMaxBounds;
-
     public bool _walking;
     public bool _running;
-
+    public bool isSearchingForMeat = false;
+    private void Start()
+    {
+        if (!photonView.IsMine){
+            enabled = false;
+            return;
+        }
+    }
     private void Update()
     {
-        if (agent.velocity == Vector3.zero && !Distracted)
-        {
-            if (!walkPointSet && !waitingforwalkpoint){
-                StartCoroutine(WaitForNewWalkPoint());
-            }
-            else{
-                Patrolling();
-            }
-        }
-        Collider[] playersInChaseRange = Physics.OverlapSphere(transform.position, SearchRadius, mask);
+        if (!canSeePlayer && !chasing && !Distracted) {StartCoroutine(WaitForNewWalkPoint()); }
+        CheckSphereResults = new Collider[10];
+        Physics.OverlapSphereNonAlloc(transform.position, SearchRadius, CheckSphereResults, mask);
         if (!chasing && !Distracted)
         {
-            Patrolling();
-            foreach (Collider obj in playersInChaseRange)
+            foreach (Collider obj in CheckSphereResults)
             {
-                if (Vector3.Distance(transform.position, obj.transform.position) < _chaseRange) {
-                    if (obj.CompareTag("Player")){
-                        target = obj.transform;
-                        if (IsInBounds(target.position)){
+                if (obj == null) {continue;}
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, obj.transform.position - transform.position, out hit))
+                {
+                    if (IsInBounds(hit.transform.position)){
+                        if (hit.collider.CompareTag("Player"))
+                        {
+                            target = hit.transform;
                             chasing = true;
                             return;
                         }
-                    }
-                    else if (obj.CompareTag("Item") && !isOnTimer){
-                        target = obj.transform;
-                        if (IsInBounds(target.position)){
-                            Distracted = true;
-                        }
-                        else{
-                            StopCoroutine(GetMeat());
-                            Distracted = false;
-                            target = null;
-                        }
-                    }
-                }
-                else{
-                    if (obj.CompareTag("Player")){
-                        if (NavMesh.SamplePosition(target.position, out NavMeshHit navHit, 8f, NavMesh.AllAreas))
+                        else if (hit.collider.CompareTag("Item") && !isOnTimer)
                         {
-                            if (IsInBounds(navHit.position)){
-                                agent.SetDestination(navHit.position);
+                            if (hit.collider.CompareTag("Item"))
+                            {
+                                target = hit.transform;
+                                Distracted = true;
+                                return;
                             }
-                            else return;
+                            
                         }
+                    }
+                    else if (hit.collider.CompareTag("Player") && !Distracted)
+                    {
+                        target = hit.transform;
+                        agent.SetDestination(SensingPosition.position);
+                        Vector3 lookPos = target.position - transform.position;
+                        Quaternion lookRot = Quaternion.LookRotation(lookPos, Vector3.up);
+                        float eulerY = lookRot.eulerAngles.y;
+                        Quaternion rotation = Quaternion.Euler(0, eulerY, 0);
+                        transform.rotation = rotation;
+                        canSeePlayer = true;
+                        Debug.Log("YEEEHAWWWWW!!!!!!!!!!!!!!!!!!!!!!");
+                        if (!isSearchingForMeat)
+                        {
+                            isSearchingForMeat = true;
+                            StartCoroutine(CheckForMeat());
+                        }
+                    }
+                    else
+                    {
+                        canSeePlayer = false;
+                        chasing = false;
                     }
                 }
             }
+            if (target != null) { Debug.DrawLine(transform.position, target.position, Color.red);}
         }
         if (chasing && !Distracted)
         {
-            foreach (Collider obj in playersInChaseRange)
+            foreach (Collider obj in CheckSphereResults)
             {
-                if (Vector3.Distance(transform.position, obj.transform.position) < _chaseRange) {
+                if (obj == null) {continue;}
+                if (Vector3.Distance(transform.position, obj.transform.position) < _chaseRange)
+                {
                     if (obj.CompareTag("Player"))
                     {
                         target = obj.transform;
@@ -105,21 +123,39 @@ public class DogAI : MonoBehaviourPun
                 }
             }
         }
-        if (Distracted){
-            foreach (Collider player in playersInChaseRange){
-                if (Vector3.Distance(transform.position, player.transform.position) < _chaseRange) {
-                    if (player.CompareTag("Item")){
-                        Distracted = true;
+        if (Distracted)
+        {
+            foreach (Collider obj in CheckSphereResults)
+            {
+                if (obj == null) {continue;}
+                if (IsInBounds(obj.transform.position))
+                {
+                    if (obj.CompareTag("Item"))
+                    {
                         agent.SetDestination(target.position);
                         StartCoroutine(GetMeat());
-                        
                     }
                 }
             }
         }
     }
+    private IEnumerator CheckForMeat(){
+        InventoryManager playerInv = target.GetComponent<InventoryManager>();
+        yield return new WaitForSeconds(2f);
+
+        if (playerInv.Equipped.childCount > 0 && playerInv.Equipped.GetChild(0).name == "Meat"){
+                Debug.Log("Have MEAT!!!");
+        }
+        else{
+            yield return new WaitForSeconds(0.5f);
+            if (playerInv.Equipped.childCount !> 0 && playerInv.Equipped.GetChild(0).name != "Meat")
+            Debug.Log("NO MEAT KILL");
+        }
+        isSearchingForMeat = false;
+    }
     private IEnumerator GetMeat(){
-        yield return new WaitUntil(() => Vector3.Distance(transform.position, target.position) <= 2f);
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, target.position) <= 2f && target.GetComponent<Rigidbody>().velocity == Vector3.zero);
+        agent.speed = ChaseSpeed;
         agent.SetDestination(transform.position);
         target.gameObject.tag = "Untagged";
         PhotonView view = target.transform.GetComponent<PhotonView>();
@@ -129,6 +165,7 @@ public class DogAI : MonoBehaviourPun
         isOnTimer = true;
         StartCoroutine(Timer());
         PhotonNetwork.Destroy(view);
+        agent.speed = PatrolSpeed;
     }
     private IEnumerator Timer(){
         yield return new WaitForSeconds(_DistractionDelayTime);
@@ -148,6 +185,14 @@ public class DogAI : MonoBehaviourPun
             return true;}
             else return false;
     }
+    private Vector3 GetClosestPointInBounds(Vector3 position)
+        {
+        Vector3 closestPoint = position;
+        closestPoint.x = Mathf.Clamp(closestPoint.x, roomMinBounds.x, roomMaxBounds.x);
+        closestPoint.z = Mathf.Clamp(closestPoint.z, roomMinBounds.z, roomMaxBounds.z);
+        return closestPoint;
+        }
+
     private void Patrolling()
     {
         if (!walkPointSet) return;

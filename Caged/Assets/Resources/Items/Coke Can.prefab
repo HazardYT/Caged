@@ -192,7 +192,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   locked: 0
   isValueable: 0
-  ValueableWorth: 0
+  ValueableWorthMin: 0
+  ValueableWorthMax: 0
   audioSource: {fileID: 6983376069346451919}
   audioClips:
   - {fileID: 8300000, guid: bbb1daca83036a348a0d833674c69a23, type: 3}

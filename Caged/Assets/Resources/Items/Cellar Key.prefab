@@ -191,7 +191,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   locked: 0
   isValueable: 0
-  ValueableWorth: 0
+  ValueableWorthMin: 0
+  ValueableWorthMax: 0
   audioSource: {fileID: 4038727112470589430}
   audioClips:
   - {fileID: 8300000, guid: c192ca30ac3257d40b7b459a7e69fac7, type: 3}
@@ -307,11 +308,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a34dce33c4213c4393266fbcd799d5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  checkRadius: 5
-  checkInterval: 0.5
-  playerLayerMask:
-    serializedVersion: 2
-    m_Bits: 0
   material: {fileID: 2100000, guid: 6e4f26dca34a46d4792b902fc997e631, type: 2}
   color: {r: 1, g: 0.7813062, b: 0, a: 1}
   mask: {fileID: 0}

@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviourPun, IPunObservable
     private float elapsedTime;
     public bool timerOn = false;
     public float _moneyCollected = 0;
+    public float _savedNPCS = 0;
     public DonnyAI donnyAI;
 
     private int syncedMinutes = 0;

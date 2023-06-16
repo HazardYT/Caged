@@ -2,9 +2,13 @@ using UnityEngine;
 using Photon.Pun;
 public class Van : MonoBehaviourPun
 {
+    GameManager manager;
+    void Start(){
+        manager = GameObject.FindObjectOfType<GameManager>();
+    }
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && manager._savedNPCS > 0)
         {
             EndGame();
         }

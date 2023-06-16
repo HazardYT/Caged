@@ -191,6 +191,10 @@ public class Interactions : MonoBehaviourPun
                         if (drawerview.Owner != PhotonNetwork.LocalPlayer) { drawerview.RequestOwnership(); }
                         StartCoroutine(Drawer(DI, drawerview.ViewID));
                     }
+                    if (hit.collider.gameObject.CompareTag("NPC") && hit.collider.gameObject.GetComponent<NPCAI>().enabled == false){
+                        int id = hit.collider.gameObject.GetComponent<PhotonView>().ViewID;
+                        photonView.RPC(nameof(EnableNPC),RpcTarget.AllViaServer, id);
+                    }
                 }
             }
         }
@@ -392,5 +396,11 @@ public class Interactions : MonoBehaviourPun
         int sound = Random.Range(0, i.ValueablesPickupClips.Length);
         i.audioSource.clip = ValueablesPickupClips[sound];
         i.audioSource.Play();
+    }
+    [PunRPC]
+    public void EnableNPC(int viewid){
+        PhotonView view = PhotonView.Find(viewid);
+        NPCAI ai = view.gameObject.GetComponent<NPCAI>();
+        ai.enabled = true;
     }
 }

@@ -39,7 +39,6 @@ public class DonnyAI : MonoBehaviourPun
     public bool _running;
     public bool _walking;
     public bool _attackrun;
-    public bool _opening;
     public float agentWalkSpeed;
     public float agentRunSpeed;
 
@@ -331,12 +330,18 @@ public class DonnyAI : MonoBehaviourPun
         float distanceToTarget = Vector3.Distance(transform.position, Target.position);
 
         if (distanceToTarget <= maxRange)
-        {
+        {   
+            if (Target.CompareTag("Player")){
+                CharacterController playerController = Target.GetComponent<CharacterController>();
+                float predictionFactor = Mathf.Lerp(0.05f, predictionAmount, distanceToTarget / maxRange);
+                Vector3 predictedPosition = Target.position + (playerController.velocity * predictionFactor);
+                agent.SetDestination(predictedPosition);
+                Debug.DrawLine(agentEyes.position, predictedPosition, Color.yellow);
+            }
+            else{
+                agent.SetDestination(Target.position);
+            }
             Debug.DrawLine(agentEyes.position, Target.position, Color.red);
-            CharacterController playerController = Target.GetComponent<CharacterController>();
-            float predictionFactor = Mathf.Lerp(0.05f, predictionAmount, distanceToTarget / maxRange);
-            Vector3 predictedPosition = Target.position + (playerController.velocity * predictionFactor);
-            agent.SetDestination(predictedPosition);
         }
     }
     // Called From other functions which checks searchwalkpoint and gets a position then will patroll finding random points.
@@ -782,16 +787,6 @@ public class DonnyAI : MonoBehaviourPun
             if (value == _attackrun) return;
             _attackrun = value;
             anim.SetBool("Grabbing", _attackrun);
-        }
-    }
-    public bool Opening
-    {
-        get { return _opening; }
-        set
-        {
-            if (value == _opening) return;
-            _opening = value;
-            anim.SetBool("OpenDoor", _opening);
         }
     }
 }

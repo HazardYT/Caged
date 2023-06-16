@@ -23,6 +23,9 @@ TagManager:
   - PlayerHolder
   - Bullet
   - SurveillanceMonitor
+  - NPC
+  - Van
+  - Monster
   layers:
   - Default
   - TransparentFX
@@ -42,8 +45,8 @@ TagManager:
   - Floor
   - GameUI
   - Meat
-  - 
-  - 
+  - NPC
+  - Saved
   - 
   - 
   - 

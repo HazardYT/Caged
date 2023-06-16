@@ -274,7 +274,8 @@ public class InventoryManager : MonoBehaviourPun
         Slots[i] = null;
         SlotImage[i].enabled = false;
         ItemCount--;
-        PhotonNetwork.Instantiate("Items/" + itemname, transform.position, Quaternion.identity);
+        GameObject obj = PhotonNetwork.Instantiate("Items/" + itemname, transform.position, Quaternion.identity);
+        photonView.RPC(nameof(ItemSettingsRPC),RpcTarget.AllViaServer, obj.GetComponent<PhotonView>().ViewID, itemname);
         }
     }
     public void RemoveEquippedItem()

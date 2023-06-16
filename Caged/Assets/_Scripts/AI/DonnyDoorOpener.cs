@@ -128,8 +128,8 @@ public class DonnyDoorOpener : MonoBehaviourPun
         }
         info.transform.localRotation = newRot;
         photonView.RPC(nameof(SetDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
-        yield return new WaitForSeconds(1.5f);
         DoorCooldown = false;
+        info.GetComponent<PhotonView>().TransferOwnership(0);
     }
     public IEnumerator StaticDoor(StaticDoorInfo info, int viewid)
     {
@@ -147,8 +147,8 @@ public class DonnyDoorOpener : MonoBehaviourPun
         }
         info.transform.localRotation = info.OpenRot;
         photonView.RPC(nameof(SetStaticDoorState), RpcTarget.OthersBuffered, viewid, info.isOpen);
-        yield return new WaitForSeconds(2f);
         StaticDoorCooldown = false;
+        info.GetComponent<PhotonView>().TransferOwnership(0);
     }
     public IEnumerator CageDoorClose(int viewid){
         CageInfo.isOpen = false;
@@ -167,6 +167,7 @@ public class DonnyDoorOpener : MonoBehaviourPun
         photonView.RPC(nameof(SetStaticLockState), RpcTarget.AllBufferedViaServer, viewid, true);
         yield return new WaitForSeconds(2f);
         StaticDoorCooldown = false;
+        CageInfo.GetComponent<PhotonView>().TransferOwnership(0);
     }
     public IEnumerator EnableListeningAfterDelay(float delay)
     {
