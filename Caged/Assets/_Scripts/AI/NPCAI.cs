@@ -55,4 +55,5 @@ public class NPCAI : MonoBehaviourPun
         manager._moneyCollected += 1000;
         manager.moneyText.text = "$" + manager._moneyCollected;
     }
+    
 }

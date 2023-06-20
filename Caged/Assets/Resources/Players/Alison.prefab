@@ -7636,9 +7636,14 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 1
     Name: Prone
+  - Type: 9
+    SynchronizeType: 0
+    Name: OpenDoor
   m_SynchronizeLayers:
   - SynchronizeType: 1
     LayerIndex: 0
+  - SynchronizeType: 0
+    LayerIndex: 1
 --- !u!114 &7246771588259798760
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7733,8 +7738,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 84e8c9e5508b12e4da5233aeeef464cc, type: 3}
   - {fileID: 8300000, guid: f4bff34abdc0ad442929b969d7a2e405, type: 3}
   - {fileID: 8300000, guid: 90a3f3d0e8bdfb94e851db90a334ad3f, type: 3}
-  InteractDistance: 3.5
-  InventoryManager: {fileID: 5079068743488397938}
+  InteractDistance: 4
+  playerCam: {fileID: 342151871687641261}
+  _inventoryManager: {fileID: 5079068743488397938}
 --- !u!114 &4979323596202036940
 MonoBehaviour:
   m_ObjectHideFlags: 0

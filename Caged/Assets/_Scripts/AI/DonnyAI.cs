@@ -62,6 +62,7 @@ public class DonnyAI : MonoBehaviourPun
     private float pathIncompleteTimer = 0f;
     private float pathIncompleteWaitTime = 1f;
     public int maxColliders;
+    bool isMoveToLightSwitchCalled = false;
 
     private void Awake(){
         #if UNITY_EDITOR
@@ -293,25 +294,25 @@ public class DonnyAI : MonoBehaviourPun
     {
         overlapSphereResults = new Collider[maxColliders];
         Physics.OverlapSphereNonAlloc(transform.position, maxRange, overlapSphereResults, allMask);
-        foreach (Collider player in overlapSphereResults)
+        foreach (Collider obj in overlapSphereResults)
         {
-            if (player == null) {return;}
-            if (player.gameObject.CompareTag("Player")){
-                if (Physics.Raycast(agentEyes.position, player.transform.position - agentEyes.position, out RaycastHit hit))
+            if (obj == null) {return;}
+            if (obj.CompareTag("Player")){
+                if (Physics.Raycast(agentEyes.position, obj.transform.position - agentEyes.position, out RaycastHit hit))
                 {
                     if (hit.transform.CompareTag("Player"))
                     {
-                        bool flashlightActive = CanSeePlayerLight(player.transform);
+                        bool flashlightActive = CanSeePlayerLight(obj.transform);
                         if (flashlightActive)
                         {
-                            Debug.DrawLine(transform.position, player.transform.position, Color.white);
+                            Debug.DrawLine(transform.position, obj.transform.position, Color.white);
                             isMovingToPos = false;
-                            Target = player.transform;
+                            Target = obj.transform;
                             isChasing = true;
                             return;
                         }
                     }
-                    if (!hit.collider.CompareTag("Player") && !isMovingToPos && isChasing && !CanSeePlayerLight(player.transform))
+                    if (!hit.collider.CompareTag("Player") && !isMovingToPos && isChasing && !CanSeePlayerLight(obj.transform))
                     {
                         //Debug.Log("(MaxRange) - Lost Player Line Of Sight Moving To Last Pos.");
                         isChasing = false;
@@ -321,7 +322,21 @@ public class DonnyAI : MonoBehaviourPun
                     }
                 }
             }
+            if (obj.CompareTag("LightSwitch") && !isChasing){
+                LightInfo lightInfo = obj.transform.GetComponentInChildren<LightInfo>();
+                if (lightInfo.isOn){
+                    MovePos = obj.transform.position;
+                    isMovingToPos = true;
+                    if (!isMoveToLightSwitchCalled) {StartCoroutine(MoveToLightSwitch(lightInfo)); isMoveToLightSwitchCalled = true;}
+                }
+            }
         }
+    }
+    public IEnumerator MoveToLightSwitch(LightInfo info){
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, MovePos) <= 2);
+        StartCoroutine(info.LightSwitchToggle());
+        Debug.Log("DONNY TOGGLING LIGHT");
+        isMoveToLightSwitchCalled = false;
     }
     // Called From other functions which predicts the movement and actually chases the player while being run. as long as isChasing is true.
     public void Chase()

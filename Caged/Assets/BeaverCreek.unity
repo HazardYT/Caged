@@ -510,6 +510,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -1718,7 +1719,7 @@ GameObject:
   - component: {fileID: 44250574}
   - component: {fileID: 44250573}
   - component: {fileID: 44250572}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch6
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -2597,6 +2598,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -4143,6 +4145,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 2018706734}
   Light2: {fileID: 67252455}
   _lightSwitch: {fileID: 94672546}
@@ -4914,6 +4917,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: Room Key
   isLocked: 1
@@ -5590,6 +5594,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -5955,6 +5960,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &120229663
@@ -6457,7 +6463,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &144772752
 GameObject:
@@ -6646,6 +6652,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 0
+  LightSwitchCooldown: 0
   Light: {fileID: 1472788203}
   Light2: {fileID: 1796234872}
   _lightSwitch: {fileID: 144772753}
@@ -7639,7 +7646,7 @@ GameObject:
   - component: {fileID: 172588322}
   - component: {fileID: 172588321}
   - component: {fileID: 172588320}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch10
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -7737,7 +7744,7 @@ GameObject:
   - component: {fileID: 174839055}
   - component: {fileID: 174839054}
   - component: {fileID: 174839053}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch9
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -7863,7 +7870,7 @@ Transform:
   - {fileID: 2002935804}
   - {fileID: 1557663453}
   m_Father: {fileID: 0}
-  m_RootOrder: 12
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &177167004
 GameObject:
@@ -8349,6 +8356,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1334182969}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 187726398}
@@ -8865,6 +8873,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -10045,6 +10054,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -10281,6 +10291,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: Room Key
   isLocked: 1
@@ -10576,7 +10587,7 @@ GameObject:
   - component: {fileID: 231667503}
   - component: {fileID: 231667502}
   - component: {fileID: 231667501}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch12
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -11937,6 +11948,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &257429880
@@ -12579,6 +12591,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 995933286}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 262971527}
@@ -13806,6 +13819,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -15367,6 +15381,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -16072,7 +16087,7 @@ GameObject:
   - component: {fileID: 338093566}
   - component: {fileID: 338093565}
   - component: {fileID: 338093564}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch15
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -17683,6 +17698,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &365196651
@@ -18296,6 +18312,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1485745759}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 372187376}
@@ -19747,6 +19764,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -20249,7 +20267,7 @@ GameObject:
   - component: {fileID: 420156973}
   - component: {fileID: 420156972}
   - component: {fileID: 420156971}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: BasementLightSwitch2
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -23751,6 +23769,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -24578,6 +24597,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -25083,7 +25103,7 @@ Transform:
   - {fileID: 834584493}
   - {fileID: 741635026}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &504196003
 MonoBehaviour:
@@ -25237,7 +25257,7 @@ GameObject:
   - component: {fileID: 507924620}
   - component: {fileID: 507924619}
   - component: {fileID: 507924618}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch8
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -28378,6 +28398,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -29832,6 +29853,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -30330,6 +30352,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -30628,6 +30651,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -31593,6 +31617,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -32876,6 +32901,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1193444130}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 642795299}
@@ -34390,6 +34416,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -34546,6 +34573,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -36555,6 +36583,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -37485,6 +37514,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 251333894}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 718580750}
@@ -37695,6 +37725,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &725392433
@@ -38313,7 +38344,7 @@ GameObject:
   - component: {fileID: 736201619}
   - component: {fileID: 736201618}
   - component: {fileID: 736201617}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch14
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -38411,7 +38442,7 @@ GameObject:
   - component: {fileID: 738627008}
   - component: {fileID: 738627007}
   - component: {fileID: 738627006}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch13
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -39689,6 +39720,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1167533911}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 757098260}
@@ -40559,6 +40591,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1349616993}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 776856220}
@@ -40804,6 +40837,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 1
@@ -41842,7 +41876,7 @@ GameObject:
   - component: {fileID: 798638945}
   - component: {fileID: 798638944}
   - component: {fileID: 798638943}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: BasementLightSwitch1
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -42543,6 +42577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &812898989
@@ -45825,6 +45860,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1218588756}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 899053634}
@@ -46260,7 +46296,7 @@ GameObject:
   - component: {fileID: 909515292}
   - component: {fileID: 909515291}
   - component: {fileID: 909515290}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch4
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -46591,6 +46627,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -47570,6 +47607,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -48852,6 +48890,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -49128,7 +49167,7 @@ Transform:
   - {fileID: 4770879699592660620}
   - {fileID: 581062523}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &974634269
 GameObject:
@@ -49725,6 +49764,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &986948798
@@ -49902,6 +49942,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -54278,6 +54319,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -55572,7 +55614,7 @@ GameObject:
   - component: {fileID: 1119386800}
   - component: {fileID: 1119386799}
   - component: {fileID: 1119386798}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch7
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -55759,6 +55801,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -56469,7 +56512,7 @@ GameObject:
   - component: {fileID: 1130141709}
   - component: {fileID: 1130141708}
   - component: {fileID: 1130141707}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: BasementLightSwitch3
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -57280,6 +57323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &1158296567
@@ -57482,7 +57526,7 @@ GameObject:
   - component: {fileID: 1161076939}
   - component: {fileID: 1161076938}
   - component: {fileID: 1161076937}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: BasementLightSwitch3_1
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -58605,6 +58649,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -60639,6 +60684,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -62517,6 +62563,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -63394,6 +63441,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -64254,7 +64302,7 @@ GameObject:
   - component: {fileID: 1309285476}
   - component: {fileID: 1309285475}
   - component: {fileID: 1309285474}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch16
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -65085,6 +65133,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 0
   KeyName: 
   isLocked: 0
@@ -67691,6 +67740,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -68496,7 +68546,7 @@ GameObject:
   - component: {fileID: 1432945484}
   - component: {fileID: 1432945483}
   - component: {fileID: 1432945482}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch3
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -73055,6 +73105,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 1
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -120
   isLocked: 1
@@ -75427,6 +75478,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 291974630}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 1596352512}
@@ -75625,6 +75677,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -76661,6 +76714,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -78577,6 +78631,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 0
+  LightSwitchCooldown: 0
   Light: {fileID: 1519627098}
   Light2: {fileID: 1235847160}
   _lightSwitch: {fileID: 1656647849}
@@ -78798,6 +78853,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &1666403720
@@ -81680,6 +81736,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4ad6cb059fdfc5443a2e0cd0a495e4ba, type: 3}
   - {fileID: 8300000, guid: c038fa2bd6229b44f956b5401c86f6d2, type: 3}
   isOpen: 0
+  DoorCooldown: 0
   Z: 1
   KeyName: 
   isLocked: 0
@@ -82345,6 +82402,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 167726668}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 1737281157}
@@ -82821,6 +82879,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 0
@@ -84052,6 +84111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &1776610980
@@ -84546,6 +84606,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 0
+  LightSwitchCooldown: 0
   Light: {fileID: 315999795}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 1788478644}
@@ -85491,7 +85552,7 @@ GameObject:
   - component: {fileID: 1815615801}
   - component: {fileID: 1815615800}
   - component: {fileID: 1815615799}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch5
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -86174,6 +86235,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 631942525}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 1835287850}
@@ -86471,6 +86533,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -87828,6 +87891,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &1851478538
@@ -88858,6 +88922,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 377455924}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 1883552659}
@@ -89152,6 +89217,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -90980,6 +91046,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -92341,6 +92408,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &1963725681
@@ -92518,6 +92586,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -95167,6 +95236,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: 90
   isLocked: 0
@@ -96533,6 +96603,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 286844672}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 2041859323}
@@ -96809,6 +96880,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 0
+  LightSwitchCooldown: 0
   Light: {fileID: 697130296}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 2044310350}
@@ -97602,6 +97674,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 1840718341}
   Light2: {fileID: 0}
   _lightSwitch: {fileID: 2078273034}
@@ -98702,7 +98775,7 @@ GameObject:
   - component: {fileID: 2101333428}
   - component: {fileID: 2101333427}
   - component: {fileID: 2101333426}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch2
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -98971,6 +99044,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &2106867978
@@ -101440,7 +101514,7 @@ GameObject:
   - component: {fileID: 2147472552}
   - component: {fileID: 2147472551}
   - component: {fileID: 2147472550}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch11
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -102077,7 +102151,7 @@ Transform:
   - {fileID: 936517103}
   - {fileID: 989254562}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 90}
 --- !u!4 &543450652164173963
 Transform:
@@ -102206,7 +102280,7 @@ Transform:
   - {fileID: 729307742}
   - {fileID: 1691400379}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 90}
 --- !u!4 &543450653138940115
 Transform:
@@ -102436,12 +102510,12 @@ SkinnedMeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 3
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
-  m_RendererPriority: 0
+  m_RendererPriority: 1
   m_Materials:
   - {fileID: 1296888581885780687, guid: 44b734fe2e73a26468e5d9e6af24f806, type: 3}
   - {fileID: 1001728690181216174, guid: 44b734fe2e73a26468e5d9e6af24f806, type: 3}
@@ -105549,7 +105623,7 @@ Transform:
   - {fileID: 584748531}
   - {fileID: 502080067}
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &1760620636393307193
 Rigidbody:
@@ -105752,7 +105826,7 @@ MonoBehaviour:
     m_Bits: 5120
   allMask:
     serializedVersion: 2
-    m_Bits: 5376
+    m_Bits: 1053952
   agent: {fileID: 1760620636393307197}
   anim: {fileID: 502080070}
   agentEyes: {fileID: 358493205}
@@ -109829,6 +109903,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 1
@@ -113071,7 +113146,7 @@ GameObject:
   - component: {fileID: 8206365704528780125}
   - component: {fileID: 6198687467557760919}
   - component: {fileID: 8206365704528780126}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LightSwitch1
   m_TagString: LightSwitch
   m_Icon: {fileID: 0}
@@ -114260,6 +114335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &6562124437387146385
@@ -114736,7 +114812,7 @@ Transform:
   - {fileID: 4541937358485879789}
   - {fileID: 7141545401155970456}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6984461293130564093
 MonoBehaviour:
@@ -114893,6 +114969,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &6998216703198297514
@@ -115429,6 +115506,7 @@ MonoBehaviour:
   isOn: 0
   isLocked: 0
   needsMaterialSwitch: 1
+  LightSwitchCooldown: 0
   Light: {fileID: 658655774}
   Light2: {fileID: 309283919}
   _lightSwitch: {fileID: 2257871595943356406}
@@ -115595,6 +115673,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 1
@@ -116120,6 +116199,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 1
@@ -131188,6 +131268,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &7814405832653472858
@@ -131628,7 +131709,7 @@ Transform:
   - {fileID: 696289783}
   - {fileID: 1062211062}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
 --- !u!65 &8157011754663632403
 BoxCollider:
@@ -131783,6 +131864,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 1
@@ -132536,6 +132618,7 @@ MonoBehaviour:
   isOpen: 0
   isJail: 0
   OgRot: {x: 0, y: 0, z: 0, w: 0}
+  StaticDoorCooldown: 0
   OpenRot: {x: 0, y: 0, z: 0, w: 0}
   rotation: -90
   isLocked: 1
@@ -133062,6 +133145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOpen: 0
+  DrawerCooldown: 0
   ClosePos: {x: 0, y: 0, z: 0}
   OpenPos: {x: -0.0065, y: 0, z: 0}
 --- !u!114 &8853138126406167454
